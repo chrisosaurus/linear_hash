@@ -12,9 +12,8 @@
  * these would be static but we want to be able to test them
  */
 char * lh_strdupn(char *str, size_t len);
-unsigned int lh_entry_init(struct lh_entry *entry, unsigned long int hash, char *key, size_t key_len, void *data, struct lh_entry *next);
-struct lh_entry * lh_entry_new(unsigned long int hash, char *key, size_t key_len, void *data, struct lh_entry *next);
-unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_entry, unsigned int free_data);
+unsigned int lh_entry_init(struct lh_entry *entry, unsigned long int hash, char *key, size_t key_len, void *data);
+unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data);
 struct lh_entry * lh_find_entry(struct lh_table *table, char *key);
 
 
@@ -308,9 +307,9 @@ void collision(void){
     puts("\ntesting collision behavior ");
 
     puts("creating a table");
-    table = lh_new(1);
+    table = lh_new(9);
     assert(table);
-    assert( 1 == table->size );
+    assert( 9 == table->size );
     assert( 0 == table->n_elems );
 
 
@@ -726,7 +725,7 @@ void error_handling(void){
 int internal(void){
     struct lh_table table;
     struct lh_entry she;
-    struct lh_entry *new_she = 0;
+    struct lh_entry static_she;
 
     puts("\ntesting internal functions");
 
@@ -737,19 +736,16 @@ int internal(void){
 
     /* lh_entry_new and lh_entry_init */
     puts("testing lh_entry_new and lh_entry_init");
-    assert( 0 == lh_entry_init(0, 0, 0, 0, 0, 0) );
-    assert( 0 == lh_entry_init(&she, 0, 0, 0, 0, 0) );
-    assert( 0 == lh_entry_new(0, 0, 0, 0, 0) );
-    new_she = lh_entry_new(0, "hello", 0, 0, 0);
-    assert(new_she);
-    assert( lh_entry_init(&she, 0, "hello", 0, 0, 0) );
+    assert( 0 == lh_entry_init(0, 0, 0, 0, 0) );
+    assert( 0 == lh_entry_init(&she, 0, 0, 0, 0) );
+    assert( lh_entry_init(&static_she, 0, "hello", 0, 0) );
 
     /* lh_entry_destroy */
     puts("testing lh_entry_destroy");
-    assert( 0 == lh_entry_destroy(0, 0, 0) );
-    new_she->data = calloc(1, sizeof(int));
-    assert(new_she->data);
-    assert(  lh_entry_destroy(new_she, 1, 1) );
+    assert( 0 == lh_entry_destroy(0, 0) );
+    static_she.data = calloc(1, sizeof(int));
+    assert(static_she.data);
+    assert(  lh_entry_destroy(&static_she, 1) );
 
     /* lh_find_entry */
     puts("testing lh_find_entry");

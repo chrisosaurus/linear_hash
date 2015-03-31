@@ -3,7 +3,14 @@
 
 #include <stddef.h> /* size_t */
 
+enum lh_entry_state {
+    LH_ENTRY_EMPTY,
+    LH_ENTRY_OCCUPIED,
+    LH_ENTRY_DUMMY // was occupied but now delete
+};
+
 struct lh_entry {
+    enum lh_entry_state state;
     /* hash value for this entry, output of lh_hash(key) */
     unsigned long int hash;
     /* string copied using lh_strdup (defined in linear_hash.c) */
@@ -12,10 +19,6 @@ struct lh_entry {
     size_t key_len;
     /* data pointer */
     void *data;
-    /* the buckets under a hash are stored as a linked list
-     * in no particular order
-     */
-    struct lh_entry *next;
 };
 
 struct lh_table {
@@ -23,8 +26,8 @@ struct lh_table {
     size_t size;
     /* number of elements stored in hash */
     size_t n_elems;
-    /* array of pointers to the first bucket in each slot */
-    struct lh_entry **entries;
+    /* array of lh_entries */
+    struct lh_entry *entries;
 };
 
 

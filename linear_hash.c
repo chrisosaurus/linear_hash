@@ -83,11 +83,10 @@ LH_INTERNAL char * lh_strdupn(char *str, size_t len){
  * returns 0 on error
  */
 LH_INTERNAL unsigned int lh_entry_init(struct lh_entry *entry,
-                                  unsigned long int hash,
-                                  char *key,
-                                  size_t key_len,
-                                  void *data,
-                                  struct lh_entry *next){
+                                       unsigned long int hash,
+                                       char *key,
+                                       size_t key_len,
+                                       void *data ){
 
     if( ! entry ){
         puts("lh_entry_init: entry was null");
@@ -119,7 +118,7 @@ LH_INTERNAL unsigned int lh_entry_init(struct lh_entry *entry,
     entry->hash    = hash;
     entry->key_len = key_len;
     entry->data    = data;
-    entry->next    = next;
+    entry->state   = LH_ENTRY_OCCUPIED;
 
     /* we duplicate the string */
     entry->key = lh_strdupn(key, key_len);
@@ -137,11 +136,11 @@ LH_INTERNAL unsigned int lh_entry_init(struct lh_entry *entry,
  * returns pointer on success
  * returns 0 on failure
  */
+#if 0
 LH_INTERNAL struct lh_entry * lh_entry_new(unsigned long int hash,
-                                      char *key,
-                                      size_t key_len,
-                                      void *data,
-                                      struct lh_entry *next){
+                                           char *key,
+                                           size_t key_len,
+                                           void *data ){
     struct lh_entry *she = 0;
 
     /* alloc */
@@ -152,13 +151,14 @@ LH_INTERNAL struct lh_entry * lh_entry_new(unsigned long int hash,
     }
 
     /* init */
-    if( ! lh_entry_init(she, hash, key, key_len, data, next) ){
+    if( ! lh_entry_init(she, hash, key, key_len, data) ){
         puts("lh_entry_new: call to lh_entry_init failed");
         return 0;
     }
 
     return she;
 }
+#endif
 
 /* destroy entry
  *
@@ -166,12 +166,10 @@ LH_INTERNAL struct lh_entry * lh_entry_new(unsigned long int hash,
  * will NOT free *next
  * will free all other values
  *
- * will free provided *entry if `free_entry` is 1
- *
  * returns 1 on success
  * returns 0 on error
  */
-LH_INTERNAL unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_entry, unsigned int free_data){
+LH_INTERNAL unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data){
     if( ! entry ){
         puts("lh_entry_destroy: entry undef");
         return 0;
@@ -183,11 +181,6 @@ LH_INTERNAL unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int f
 
     /* free key as strdup */
     free(entry->key);
-
-    /* free entry if asked */
-    if( free_entry ){
-        free(entry);
-    }
 
     return 1;
 }
@@ -206,6 +199,8 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
     unsigned long int hash = 0;
     /* position in hash table */
     size_t pos = 0;
+    /* iterator through entries */
+    size_t i = 0;
     /* cached strlen */
     size_t key_len = 0;
 
@@ -232,15 +227,21 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
      */
     pos = lh_pos(hash, table->size);
 
+    /* search pos..size */
+    for( i=pos; i < table->size; ++i ){
+        cur = &(table->entries[i]);
 
-    /* iterate through bucket considering each entry
-     * the only tricky part here is the prev pointer
-     * which is the position where we save our next
-     * to ensure the linked list of entries remains intact
-     */
-    for( cur = table->entries[pos];
-         cur;
-         cur = cur->next ){
+        /* if this is an empty then we stop */
+        if( cur->state == LH_ENTRY_EMPTY ){
+            /* failed to find element */
+            puts("lh_find_entry: failed to find key, encountered empty");
+            return 0;
+        }
+
+        /* if this is a dummy then we skip but continue */
+        if( cur->state == LH_ENTRY_DUMMY ){
+            continue;
+        }
 
         if( cur->hash != hash ){
             continue;
@@ -254,7 +255,37 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
             continue;
         }
 
-        /* found it! return this entry */
+        return cur;
+    }
+
+    /* search 0..pos */
+    for( i=0; i < pos; ++i ){
+        cur = &(table->entries[i]);
+
+        /* if this is an empty then we stop */
+        if( cur->state == LH_ENTRY_EMPTY ){
+            /* failed to find element */
+            puts("lh_find_entry: failed to find key, encountered empty");
+            return 0;
+        }
+
+        /* if this is a dummy then we skip but continue */
+        if( cur->state == LH_ENTRY_DUMMY ){
+            continue;
+        }
+
+        if( cur->hash != hash ){
+            continue;
+        }
+
+        if( cur->key_len != key_len ){
+            continue;
+        }
+
+        if( strncmp(key, cur->key, key_len) ){
+            continue;
+        }
+
         return cur;
     }
 
@@ -388,10 +419,6 @@ struct lh_table * lh_new(size_t size){
 unsigned int lh_destroy(struct lh_table *table, unsigned int free_table, unsigned int free_data){
     /* iterator through table */
     size_t i = 0;
-    /* current entry */
-    struct lh_entry *cur_she = 0;
-    /* next entry to consider */
-    struct lh_entry *next_she = 0;
 
     if( ! table ){
         puts("lh_destroy: table undef");
@@ -399,22 +426,11 @@ unsigned int lh_destroy(struct lh_table *table, unsigned int free_table, unsigne
     }
 
     /* iterate through `entries` list
-     * and then iterate through each entry within it
-     * freeing them and their appropriate parts
+     * calling lh_entry_destroy on each
      */
     for( i=0; i < table->size; ++i ){
-        next_she = table->entries[i];
-        while( next_she ){
-            cur_she = next_she;
-            next_she = next_she->next;
-
-            /* always free key as it is strdupn-ed */
-            free(cur_she->key);
-
-            /* only free data if we are asked to */
-            if( free_data ){
-                free(cur_she->data);
-            }
+        if( ! lh_entry_destroy( &(table->entries[i]), free_data ) ){
+            puts("lh_destroy: call to lh_entry_destroy failed, continuing...");
         }
     }
 
@@ -449,7 +465,7 @@ unsigned int lh_init(struct lh_table *table, size_t size){
     table->n_elems = 0;
 
     /* calloc our buckets (pointer to lh_entry) */
-    table->entries = calloc(size, sizeof(struct lh_entry *));
+    table->entries = calloc(size, sizeof(struct lh_entry));
     if( ! table->entries ){
         puts("lh_init: calloc failed");
         return 0;
@@ -468,13 +484,13 @@ unsigned int lh_init(struct lh_table *table, size_t size){
  */
 unsigned int lh_resize(struct lh_table *table, size_t new_size){
     /* our new data area */
-    struct lh_entry **new_entries = 0;
+    struct lh_entry *new_entries = 0;
     /* the current entry we are copying across */
     struct lh_entry *cur = 0;
-    /* next entry, as we modify next pointers */
-    struct lh_entry *next = 0;
     /* our iterator through the old hash */
     size_t i = 0;
+    /* our iterator through the new data */
+    size_t j = 0;
     /* our new position for each element */
     size_t new_pos = 0;
 
@@ -489,7 +505,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
     }
 
     /* allocate a new array of pointers to lh_entry */
-    new_entries = calloc(new_size, sizeof(struct lh_entry *));
+    new_entries = calloc(new_size, sizeof(struct lh_entry));
     if( ! new_entries ){
         puts("lh_resize: call to calloc failed");
         return 0;
@@ -497,25 +513,40 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
 
     /* iterate through old data */
     for( i=0; i < table->size; ++i ){
+        cur = &(table->entries[i]);
 
-        /* we have to keep the current entry and the next
-         * as once we copy over the cur we will lose cur->next
-         */
-        for( cur = table->entries[i];
-             cur;
-             cur = next ){
-
-            /* make sure to track our next pointer */
-            next = cur->next;
-
-            /* our position within new entries */
-            new_pos = lh_pos(cur->hash, new_size);
-
-            /* insert making sure to set next correctly */
-            cur->next = new_entries[new_pos];
-            new_entries[new_pos] = cur;
+        /* if we are not occupied then skip */
+        if( cur->state != LH_ENTRY_OCCUPIED ){
+            continue;
         }
 
+        /* our position within new entries */
+        new_pos = lh_pos(cur->hash, new_size);
+
+        for( j = new_pos; j < new_size; ++ j){
+            /* skip if not empty */
+            if( new_entries[j].state != LH_ENTRY_EMPTY ){
+                continue;
+            }
+            goto LH_RESIZE_FOUND;
+        }
+
+        for( j = 0; j < new_pos; ++ j){
+            /* skip if not empty */
+            if( new_entries[j].state != LH_ENTRY_EMPTY ){
+                continue;
+            }
+            goto LH_RESIZE_FOUND;
+        }
+
+        return 0;
+
+LH_RESIZE_FOUND:
+        new_entries[j].hash    = cur->hash;
+        new_entries[j].key     = cur->key;
+        new_entries[j].key_len = cur->key_len;
+        new_entries[j].data    = cur->data;
+        new_entries[j].state   = cur->state;
     }
 
     /* free old data */
@@ -574,6 +605,8 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
     unsigned long int hash = 0;
     /* position in hash table */
     size_t pos = 0;
+    /* iterator through table */
+    size_t i = 0;
     /* cached strlen */
     size_t key_len = 0;
 
@@ -621,6 +654,37 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
     puts("lh_insert: calling lh_entry_new");
 #endif
 
+    /* iterate from pos to size */
+    for( i=pos; i < table->size; ++i ){
+        she = &(table->entries[i]);
+        /* if taken keep searching */
+        if( she->state == LH_ENTRY_OCCUPIED ){
+            continue;
+        }
+
+        /* otherwise (empty or dummy) jump to found */
+        goto LH_INSERT_FOUND;
+    }
+
+    /* iterate from 0 to pos */
+    for( i=0; i < pos; ++i ){
+        she = &(table->entries[i]);
+        /* if taken keep searching */
+        if( she->state == LH_ENTRY_OCCUPIED ){
+            continue;
+        }
+
+        /* otherwise (empty or dummy) jump to found */
+        goto LH_INSERT_FOUND;
+    }
+
+    /* no slot found */
+    puts("lh_insert: unable to find insertion slot");
+    return 0;
+
+LH_INSERT_FOUND:
+    /* she is already set! */
+
     /* construct our new lh_entry
      * lh_entry_new(unsigned long int hash,
      *              char *key,
@@ -631,18 +695,11 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
      * only key needs to be defined
      *
      */
-    /*                (hash, key, key_len, data, next) */
-    she = lh_entry_new(hash, key, key_len, data, table->entries[pos]);
-    if( ! she ){
-        puts("lh_insert: call to lh_entry_new failed");
+    /*                 (entry, hash, key, key_len, data) */
+    if( ! lh_entry_init(she,   hash, key, key_len, data) ){
+        puts("lh_insert: call to lh_entry_init failed");
         return 0;
     }
-
-    /* insert at front of bucket
-     * this is safe as we have already captures the current
-     * value in she->next
-     */
-    table->entries[pos] = she;
 
     /* increment number of elements */
     ++table->n_elems;
@@ -727,19 +784,12 @@ void * lh_get(struct lh_table *table, char *key){
 void * lh_delete(struct lh_table *table, char *key){
     /* our cur entry */
     struct lh_entry *cur = 0;
-    /* the pointer where we store our next
-     * this will either be:
-     *      &( table->entries[pos] )
-     *      &( previous->next )
-     *
-     * where previous was the previous lh_entry we considered
-     */
-    struct lh_entry **prev = 0;
-
     /* hash */
     unsigned long int hash = 0;
     /* position in hash table */
     size_t pos = 0;
+    /* iterator through has table */
+    size_t i =0;
     /* cached strlen */
     size_t key_len = 0;
 
@@ -775,15 +825,23 @@ void * lh_delete(struct lh_table *table, char *key){
     pos = lh_pos(hash, table->size);
 
 
-    /* iterate through bucket considering each entry
-     * the only tricky part here is the prev pointer
-     * which is the position where we save our next
-     * to ensure the linked list of entries remains intact
+    /* starting at pos search for element
+     * searches pos .. size
      */
-    prev = &( table->entries[pos] );
-    for( cur = table->entries[pos];
-         cur;
-         prev = &(cur->next), cur = cur->next ){
+    for( i = pos; i < table->size ; ++i ){
+        cur = &(table->entries[i]);
+
+        /* if this is an empty then we stop */
+        if( cur->state == LH_ENTRY_EMPTY ){
+            /* failed to find element */
+            puts("lh_delete: failed to find key, encountered empty");
+            return 0;
+        }
+
+        /* if this is a dummy then we skip but continue */
+        if( cur->state == LH_ENTRY_DUMMY ){
+            continue;
+        }
 
         if( cur->hash != hash ){
             continue;
@@ -797,31 +855,64 @@ void * lh_delete(struct lh_table *table, char *key){
             continue;
         }
 
+        goto LH_DELETE_FOUND;
+    }
+
+    /* if we are here then we hit the end,
+     * searches 0 .. pos
+     */
+    for( i = 0; i < pos; ++i ){
+        cur = &(table->entries[i]);
+
+        /* if this is an empty then we stop */
+        if( cur->state == LH_ENTRY_EMPTY ){
+            /* failed to find element */
+            puts("lh_delete: failed to find key, encountered empty");
+            return 0;
+        }
+
+        /* if this is a dummy then we skip but continue */
+        if( cur->state == LH_ENTRY_DUMMY ){
+            continue;
+        }
+
+        if( cur->hash != hash ){
+            continue;
+        }
+
+        if( cur->key_len != key_len ){
+            continue;
+        }
+
+        if( strncmp(key, cur->key, key_len) ){
+            continue;
+        }
+
+        goto LH_DELETE_FOUND;
+    }
+
+    /* failed to find element */
+    puts("lh_delete: failed to find key, both loops terminated");
+    return 0;
+
+LH_DELETE_FOUND:
+        /* cur is already set! */
+
         /* save old data pointer */
         old_data = cur->data;
+
+        /* clear out */
+        cur->data = 0;
+        cur->key = 0;
+        cur->key_len = 0;
+        cur->hash = 0;
+        cur->state = LH_ENTRY_DUMMY;
 
         /* decrement number of elements */
         --table->n_elems;
 
-        /* capture next
-         * to ensure continuation of linked list
-         */
-        *prev = cur->next;
-
-        /* free element and contents
-         * do NOT free data, leave that up to caller
-         */
-        if( ! lh_entry_destroy(cur, 1, 0) ){
-            puts("lh_delete: warning, call to lh_entry_destroy failed, continuing...");
-        }
-
         /* return old data */
         return old_data;
-    }
-
-    /* failed to find element */
-    puts("lh_delete: failed to find key");
-    return 0;
 }
 
 

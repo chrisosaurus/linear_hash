@@ -26,7 +26,7 @@ struct lh_table {
     size_t size;
     /* number of elements stored in hash */
     size_t n_elems;
-    /* array of lh_entries */
+    /* array of lh_entry(s) */
     struct lh_entry *entries;
 };
 

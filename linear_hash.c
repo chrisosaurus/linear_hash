@@ -504,7 +504,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
         return 0;
     }
 
-    /* allocate a new array of pointers to lh_entry */
+    /* allocate an array of lh_entry */
     new_entries = calloc(new_size, sizeof(struct lh_entry));
     if( ! new_entries ){
         puts("lh_resize: call to calloc failed");

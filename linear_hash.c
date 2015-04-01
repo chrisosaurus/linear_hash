@@ -361,7 +361,7 @@ unsigned long int lh_hash(char *key, size_t key_len){
     }
 
 #ifdef DEBUG
-    puts("lh_hash: success");
+    printf("lh_hash: success for key '%s', hash value '%zd'\n", key, hash);
 #endif
     return hash;
 }
@@ -671,7 +671,7 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
     pos = lh_pos(hash, table->size);
 
 #ifdef DEBUG
-    puts("lh_insert: calling lh_entry_new");
+    printf("lh_insert: trying to insert key '%s', hash value '%zd', starting at pos '%zd'\n", key, hash, pos);
 #endif
 
     /* iterate from pos to size */
@@ -704,6 +704,10 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
 
 LH_INSERT_FOUND:
     /* she is already set! */
+
+#ifdef DEBUG
+    printf("lh_insert: inserting insert key '%s', hash value '%zd', starting at pos '%zd', into '%zd'\n", key, hash, pos, i);
+#endif
 
     /* construct our new lh_entry
      * lh_entry_new(unsigned long int hash,

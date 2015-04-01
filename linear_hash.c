@@ -831,12 +831,6 @@ void * lh_delete(struct lh_table *table, char *key){
         return 0;
     }
 
-    /* if we do not have this key then we consider this a failure */
-    if( ! lh_exists(table, key) ){
-        puts("lh_delete: key did not exist");
-        return 0;
-    }
-
     /* cache strlen */
     key_len = strlen(key);
 

@@ -1035,7 +1035,7 @@ void artificial(void){
      * shrink below n_elems
      */
     table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 101; /* hash for 'c' */
+    table->entries[0].hash    = 101;
     table->entries[1].state   = LH_ENTRY_OCCUPIED;
     table->entries[1].hash    = 101;
     table->entries[2].state   = LH_ENTRY_OCCUPIED;
@@ -1046,6 +1046,47 @@ void artificial(void){
     table->entries[4].hash    = 101;
     /* we won't be able to fit everything in! */
     assert( 0 ==  lh_resize(table, 4) );
+
+    puts("manipulating to torture lh_delete");
+    table->entries[4].state   = LH_ENTRY_EMPTY;
+    assert( lh_resize(table, 4) );
+
+    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 99; /* hash collide with c */
+    table->entries[0].key_len = 2; /* different key len*/
+
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[1].hash    = 99;
+    table->entries[1].key_len = 1;
+    table->entries[1].key     = "z"; /* different key */
+
+    table->entries[2].state   = LH_ENTRY_DUMMY;
+
+    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+    table->entries[3].hash    = 99;
+
+    assert( 0 == lh_delete(table, "c") );
+
+    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 1; /* hash differ */
+
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[1].hash    = 100; /* hash collide with d */
+    table->entries[1].key_len = 2; /* different key len*/
+
+    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+    table->entries[2].hash    = 100;
+    table->entries[2].key_len = 1;
+    table->entries[2].key     = "z"; /* different key */
+
+    table->entries[3].state   = LH_ENTRY_DUMMY;
+
+    assert( 0 == lh_delete(table, "d") );
+
+
+
+
+
 
     puts("success!");
 }

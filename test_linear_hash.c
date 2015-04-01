@@ -1084,10 +1084,6 @@ void artificial(void){
     assert( 0 == lh_delete(table, "d") );
 
 
-
-
-
-
     puts("success!");
 }
 

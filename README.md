@@ -29,8 +29,11 @@ Example usage
     #include "linear_hash.h"
 
     int main(void){
-        /* create a hash with 32 buckets */
-        struct lh_table *t = lh_new(32);
+        /* create a hash
+         * the hash will automatically manage
+         * it's size
+         */
+        struct lh_table *t = lh_new();
 
         /* some data to store */
         int data_1 = 1;
@@ -55,9 +58,6 @@ Example usage
         /* check a key exists */
         if( lh_exists(t, "hello") ){
         }
-
-        /* resize hash */
-        lh_resize(t, 64);
 
         /* tidy up
          * free table

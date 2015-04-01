@@ -379,7 +379,10 @@ void collision(void){
     assert( data_9 == *data );
 
     assert( 9 == table->n_elems );
-    assert( 10 == lh_load(table) );
+    /* assert that our resize succeeded and we
+     * are not full */
+    assert( 10 > lh_load(table) );
+    assert( 9 < table->size );
 
     puts("testing we can still get everything out");
 

@@ -11,6 +11,12 @@
 #define LH_DEFAULT_SIZE  32
 /* factor we grow the number of slots by each resize */
 #define LH_SCALING_FACTOR 2
+/* default loading factor we resize after in base 10
+ * 0 through to 10
+ *
+ * default is 6 so 60 %
+ */
+#define LH_DEFAULT_THRESHOLD 6
 
 #ifdef LH_TEST
 /* when lh_TEST is defined we want our internal functions to be
@@ -459,8 +465,9 @@ unsigned int lh_init(struct lh_table *table, size_t size){
         return 0;
     }
 
-    table->size    = size;
-    table->n_elems = 0;
+    table->size      = size;
+    table->n_elems   = 0;
+    table->threshold = LH_DEFAULT_THRESHOLD;
 
     /* calloc our buckets (pointer to lh_entry) */
     table->entries = calloc(size, sizeof(struct lh_entry));
@@ -639,6 +646,14 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
     if( lh_exists(table, key) ){
         puts("lh_insert: key already exists in table");
         return 0;
+    }
+
+    /* determine if we have to resize */
+    if( lh_load(table) > table->threshold ){
+        if( ! lh_resize(table, table->size * LH_SCALING_FACTOR) ){
+            puts("lh_insert: call to lh_resize failed");
+            return 0;
+        }
     }
 
     /* cache strlen */

@@ -11,6 +11,7 @@
  * that are not exposed via the header
  * these would be static but we want to be able to test them
  */
+unsigned int lh_entry_eq(struct lh_entry *cur, unsigned long int hash, unsigned long int key_len, char *key);
 char * lh_strdupn(char *str, size_t len);
 unsigned int lh_entry_init(struct lh_entry *entry, unsigned long int hash, char *key, size_t key_len, void *data);
 unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data);
@@ -775,6 +776,11 @@ void internal(void){
     puts("testing lh_find_entry");
     assert( 0 == lh_find_entry(0, "hello") );
     assert( 0 == lh_find_entry(&table, 0) );
+
+    /* lh_entry_eq */
+    puts("testing lh_entry_eq");
+    assert( 0 == lh_entry_eq(0, 0, 0, 0) );
+    assert( 0 == lh_entry_eq(&she, 0, 0, 0) );
 
     puts("success!");
 }

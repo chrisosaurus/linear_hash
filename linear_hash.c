@@ -42,6 +42,35 @@
  **********************************************
  ***********************************************/
 
+/* logic for testing if the current entry is eq to the
+ * provided hash, key_len and key
+ * this is to centralise the once scattered logic
+ */
+LH_INTERNAL unsigned int lh_entry_eq(struct lh_entry *cur, unsigned long int hash, unsigned long int key_len, char *key){
+    if( ! cur ){
+        puts("lh_entry_eq: cur was null");
+        return 0;
+    }
+    if( ! key ){
+        puts("lh_entry_eq: key was null");
+        return 0;
+    }
+
+    if( cur->hash != hash ){
+        return 0;
+    }
+
+    if( cur->key_len != key_len ){
+        return 0;
+    }
+
+    if( strncmp(key, cur->key, key_len) ){
+        return 0;
+    }
+
+    return 1;
+}
+
 /* internal strdup equivalent
  *
  * returns char* to new memory containing a strcpy on success
@@ -225,15 +254,7 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
             continue;
         }
 
-        if( cur->hash != hash ){
-            continue;
-        }
-
-        if( cur->key_len != key_len ){
-            continue;
-        }
-
-        if( strncmp(key, cur->key, key_len) ){
+        if( ! lh_entry_eq(cur, hash, key_len, key) ){
             continue;
         }
 
@@ -256,15 +277,7 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
             continue;
         }
 
-        if( cur->hash != hash ){
-            continue;
-        }
-
-        if( cur->key_len != key_len ){
-            continue;
-        }
-
-        if( strncmp(key, cur->key, key_len) ){
+        if( ! lh_entry_eq(cur, hash, key_len, key) ){
             continue;
         }
 
@@ -862,15 +875,7 @@ void * lh_delete(struct lh_table *table, char *key){
             continue;
         }
 
-        if( cur->hash != hash ){
-            continue;
-        }
-
-        if( cur->key_len != key_len ){
-            continue;
-        }
-
-        if( strncmp(key, cur->key, key_len) ){
+        if( ! lh_entry_eq(cur, hash, key_len, key) ){
             continue;
         }
 
@@ -895,15 +900,7 @@ void * lh_delete(struct lh_table *table, char *key){
             continue;
         }
 
-        if( cur->hash != hash ){
-            continue;
-        }
-
-        if( cur->key_len != key_len ){
-            continue;
-        }
-
-        if( strncmp(key, cur->key, key_len) ){
+        if( ! lh_entry_eq(cur, hash, key_len, key) ){
             continue;
         }
 

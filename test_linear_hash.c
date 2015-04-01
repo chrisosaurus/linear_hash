@@ -38,7 +38,7 @@ void new_insert_get_destroy(void){
     puts("\ntesting basic functionality");
 
     puts("testing new");
-    table = lh_new(32);
+    table = lh_new();
     assert(table);
     assert( 32 == table->size );
     assert( 0 == table->n_elems );
@@ -109,7 +109,7 @@ void set(void){
     puts("\ntesting set functionality");
 
     puts("creating table");
-    table = lh_new(32);
+    table = lh_new();
     assert(table);
     assert( 32 == table->size );
     assert( 0 == table->n_elems );
@@ -203,7 +203,7 @@ void delete(void){
     puts("\ntesting delete functionality ");
 
     puts("creating a table");
-    table = lh_new(32);
+    table = lh_new();
     assert(table);
     assert( 32 == table->size );
     assert( 0 == table->n_elems );
@@ -308,8 +308,14 @@ void collision(void){
     puts("\ntesting collision behavior ");
 
     puts("creating a table");
-    table = lh_new(9);
+    table = lh_new();
     assert(table);
+    assert( 32 == table->size );
+    assert( 0 == table->n_elems );
+    assert( 0 == lh_load(table) );
+
+    /* artificially shrink down table */
+    assert( lh_resize(table, 9) );
     assert( 9 == table->size );
     assert( 0 == table->n_elems );
     assert( 0 == lh_load(table) );
@@ -496,11 +502,15 @@ void resize(void){
     puts("\ntesting resize functionality");
 
     puts("creating table");
-    table = lh_new(3);
+    table = lh_new();
     assert(table);
-    assert( 3 == table->size );
+    assert( 32 == table->size );
     assert( 0 == table->n_elems );
 
+    /* artificially shrink down */
+    assert( lh_resize(table, 3) );
+    assert( 3 == table->size );
+    assert( 0 == table->n_elems );
 
     puts("inserting some data");
     assert( lh_insert(table, key_1, &data_1) );
@@ -584,7 +594,7 @@ void destroy(void){
     puts("\ntesting destroy");
 
     puts("creating table");
-    table = lh_new(32);
+    table = lh_new();
     assert(table);
     assert( 32 == table->size );
     assert( 0 == table->n_elems );
@@ -644,8 +654,13 @@ void error_handling(void){
     puts("setting up...");
 
     puts("creating table");
-    table = lh_new(3);
+    table = lh_new();
     assert(table);
+    assert( 32 == table->size );
+    assert( 0 == table->n_elems );
+
+    /* artificially shrink */
+    assert( lh_resize(table, 3) );
     assert( 3 == table->size );
     assert( 0 == table->n_elems );
 
@@ -673,9 +688,8 @@ void error_handling(void){
     assert( 0 == lh_hash(0, 0) );
     assert( lh_hash(key_1, 0) );
 
-    /* lh_new and lh_init */
-    puts("testing lh_new and lh_init");
-    assert( 0 == lh_new(0) );
+    /* lh_init */
+    puts("testing lh_init");
     assert( 0 == lh_init(0, 100) );
     assert( 0 == lh_init(&static_table, 0) );
 

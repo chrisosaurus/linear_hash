@@ -7,6 +7,11 @@
 
 #include "linear_hash.h"
 
+/* default number of slots */
+#define LH_DEFAULT_SIZE  32
+/* factor we grow the number of slots by each resize */
+#define LH_SCALING_FACTOR 2
+
 #ifdef LH_TEST
 /* when lh_TEST is defined we want our internal functions to be
  * exposed so that our testing code can access them
@@ -370,12 +375,17 @@ size_t lh_pos(unsigned long int hash, size_t table_size){
     return hash % table_size;
 }
 
-/* allocate and initialise a new lh_table of size size
+/* allocate and initialise a new lh_table
+ *
+ * will automatically assume a size of 32
+ *
+ * lh_table will automatically resize when a call to
+ * lh_insert detects the load factor is over table->threshold
  *
  * returns pointer on success
  * returns 0 on error
  */
-struct lh_table * lh_new(size_t size){
+struct lh_table * lh_new(void){
     struct lh_table *sht = 0;
 
     /* alloc */
@@ -386,7 +396,7 @@ struct lh_table * lh_new(size_t size){
     }
 
     /* init */
-    if( ! lh_init(sht, size) ){
+    if( ! lh_init(sht, LH_DEFAULT_SIZE) ){
         puts("lh_new: call to lh_init failed");
         return 0;
     }
@@ -489,6 +499,11 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
 
     if( new_size == 0 ){
         puts("lh_resize: asked for new_size of 0, impossible");
+        return 0;
+    }
+
+    if( new_size <= table->n_elems ){
+        puts("lh_resize: asked for new_size smaller than number of existing elements, impossible");
         return 0;
     }
 

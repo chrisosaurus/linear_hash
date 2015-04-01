@@ -26,6 +26,8 @@ struct lh_table {
     size_t size;
     /* number of elements stored in hash */
     size_t n_elems;
+    /* threshold that triggers an automatic resize */
+    unsigned int threshold;
     /* array of lh_entry(s) */
     struct lh_entry *entries;
 };
@@ -59,12 +61,17 @@ unsigned long int lh_hash(char *key, size_t key_len);
  */
 size_t lh_pos(unsigned long int hash, size_t table_size);
 
-/* allocate and initialise a new lh_table of size size
+/* allocate and initialise a new lh_table
+ *
+ * will automatically assume a size of 32
+ *
+ * lh_table will automatically resize when a call to
+ * lh_insert detects the load factor is over table->threshold
  *
  * returns pointer on success
  * returns 0 on error
  */
-struct lh_table * lh_new(size_t size);
+struct lh_table * lh_new(void);
 
 /* free an existing lh_table
  * this will free all the sh entries stored

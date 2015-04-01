@@ -960,6 +960,30 @@ void rollover(void){
     assert( lh_destroy(table, 1, 0) );
 }
 
+void artificial(void){
+    struct lh_table *table = 0;
+    int data = 1;
+
+    puts("\ntesting artificial linear search filure");
+
+    puts("building table");
+    table = lh_new();
+    assert(table);
+
+    /* shrink artificially */
+    assert( lh_resize(table, 2) );
+
+    /* fill only positions */
+    table->entries[0].state = LH_ENTRY_OCCUPIED;
+    table->entries[1].state = LH_ENTRY_OCCUPIED;
+
+    /* this should trigger the final return 0 of lh_find_entry */
+    assert( 0 == lh_find_entry(table, "hello") );
+
+    /* likewise an insert should fail */
+    assert( 0 == lh_insert(table, "c", &data) );
+}
+
 int main(void){
     new_insert_get_destroy();
 
@@ -980,6 +1004,8 @@ int main(void){
     load_resize();
 
     rollover();
+
+    artificial();
 
     puts("\noverall testing success!");
 

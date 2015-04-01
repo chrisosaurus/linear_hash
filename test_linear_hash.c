@@ -973,6 +973,7 @@ void artificial(void){
     /* shrink artificially */
     assert( lh_resize(table, 2) );
 
+    puts("manipulating and testing of find and insert");
     /* fill only positions */
     table->entries[0].state = LH_ENTRY_OCCUPIED;
     table->entries[1].state = LH_ENTRY_OCCUPIED;
@@ -982,6 +983,23 @@ void artificial(void){
 
     /* likewise an insert should fail */
     assert( 0 == lh_insert(table, "c", &data) );
+
+    puts("further manipulation");
+    table->entries[0].state = LH_ENTRY_DUMMY;
+    table->entries[1].state = LH_ENTRY_DUMMY;
+    assert( 0 == lh_find_entry(table, "c") );
+
+    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 99; /* force hash collision with c */
+    table->entries[0].key_len = 4; /* but with different len */
+    table->entries[0].key     = "a";
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[1].hash    = 99; /* force hash collision with c */
+    table->entries[1].key_len = 1;  /* with same len */
+    table->entries[1].key     = "b"; /* but different key */
+    assert( 0 == lh_find_entry(table, "c") );
+
+    puts("success!");
 }
 
 int main(void){

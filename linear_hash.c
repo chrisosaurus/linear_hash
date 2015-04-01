@@ -648,7 +648,9 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
         return 0;
     }
 
-    /* determine if we have to resize */
+    /* determine if we have to resize
+     * note we are checking the load before the insert
+     */
     if( lh_load(table) > table->threshold ){
         if( ! lh_resize(table, table->size * LH_SCALING_FACTOR) ){
             puts("lh_insert: call to lh_resize failed");

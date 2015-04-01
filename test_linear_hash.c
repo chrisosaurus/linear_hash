@@ -742,7 +742,7 @@ void error_handling(void){
     puts("success!");
 }
 
-int internal(void){
+void internal(void){
     struct lh_table table;
     struct lh_entry she;
     struct lh_entry static_she;
@@ -779,6 +779,126 @@ int internal(void){
     puts("success!");
 }
 
+void load_resize(void){
+    /* our simple hash table */
+    struct lh_table *table = 0;
+
+    /* some keys */
+    char *key_1 = "bbbbb";
+    char *key_2 = "aaaaa";
+    char *key_3 = "ccccc";
+    char *key_4 = "ddddd";
+
+    /* some data */
+    int data_1 = 1;
+    int data_2 = 2;
+    int data_3 = 3;
+    int data_4 = 4;
+
+    /* temporary data pointer used for testing get */
+    int *data = 0;
+
+
+    puts("\ntesting auto resizing at load");
+
+    puts("testing new");
+    table = lh_new();
+    assert(table);
+    assert( 32 == table->size );
+    assert( 0 == table->n_elems );
+    assert( 0 == lh_load(table) );
+
+    /* artificially shrink */
+    assert( lh_resize(table, 4) );
+    assert( 4 == table->size );
+    assert( 0 == table->n_elems );
+    assert( 0 == lh_load(table) );
+
+    puts("adding some data to force a resize");
+    assert( lh_insert(table, key_1, &data_1) );
+    assert( 1 == table->n_elems );
+    assert( 0 == lh_get(table, key_2) );
+    assert( 0 == lh_get(table, key_3) );
+    data = lh_get(table, key_1);
+    assert(data);
+    assert( data_1 == *data );
+
+    /* insert tests resize before inserting
+     * so from it's view at that time:
+     * 0 / 4 = 0 % loading
+     * no resize
+     */
+    assert( 4 == table->size );
+    assert( 1 == table->n_elems );
+    /* however the load now will be
+     * 1 / 4 = 25 %
+     */
+    assert( 2 == lh_load(table) );
+
+
+    assert( lh_insert(table, key_2, &data_2) );
+    assert( 2 == table->n_elems );
+    assert( 0 == lh_get(table, key_3) );
+    data = lh_get(table, key_2);
+    assert(data);
+    assert( data_2 == *data );
+
+    /* insert tests resize before inserting
+     * so from it's view at that time:
+     * 1 / 4 = 25 % loading
+     * no resize
+     */
+    assert( 4 == table->size );
+    assert( 2 == table->n_elems );
+    /* however the load now will be
+     * 2 / 4 = 50 %
+     */
+    assert( 5 == lh_load(table) );
+
+
+    assert( lh_insert(table, key_3, &data_3) );
+    assert( 3 == table->n_elems );
+    data = lh_get(table, key_3);
+    assert(data);
+    assert( data_3 == *data );
+
+    /* insert tests resize before inserting
+     * so from it's view at that time:
+     * 2 / 4 = 50 % loading
+     * no resize
+     */
+    assert( 4 == table->size );
+    assert( 3 == table->n_elems );
+    /* however the load now will be
+     * 3 / 4 = 70 %
+     */
+    assert( 7 == lh_load(table) );
+
+
+    assert( lh_insert(table, key_4, &data_4) );
+    assert( 4 == table->n_elems );
+    data = lh_get(table, key_4);
+    assert(data);
+    assert( data_4 == *data );
+
+    /* insert tests resize before inserting
+     * so from it's view at that time:
+     * 3 / 4 = 75 % loading
+     * so resize called to double
+     */
+    assert( 8 == table->size );
+    assert( 4 == table->n_elems );
+    /* and after resizing the load now will be
+     * 4 / 8 = 50 %
+     */
+    assert( 5 == lh_load(table) );
+
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+
+}
+
 int main(void){
     new_insert_get_destroy();
 
@@ -795,6 +915,8 @@ int main(void){
     error_handling();
 
     internal();
+
+    load_resize();
 
     puts("\noverall testing success!");
 

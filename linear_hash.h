@@ -30,6 +30,13 @@ struct lh_table {
     struct lh_entry *entries;
 };
 
+/* function to calculate load
+ * (table->n_elems * 10) table->size
+ *
+ * returns loading factor 0 -> 10 on success
+ * returns 0 on failure
+ */
+unsigned int lh_load(struct lh_table *table);
 
 /* takes a char* representing a string
  * and a key_len of it's size

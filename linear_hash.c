@@ -277,6 +277,23 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
  **********************************************
  ***********************************************/
 
+/* function to calculate load
+ * (table->n_elems * 10) table->size
+ *
+ * returns loading factor 0 -> 10 on success
+ * returns 0 on failure
+ */
+unsigned int lh_load(struct lh_table *table){
+    if( ! table ){
+        puts("lh_load: table was null");
+        return 0;
+    }
+
+    /* here we multiply by 10 to avoid floating point
+     * as we only care about the most significant figure
+     */
+    return (table->n_elems * 10) / table->size;
+}
 
 /* takes a char* representing a string
  *

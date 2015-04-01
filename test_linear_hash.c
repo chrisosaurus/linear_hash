@@ -42,6 +42,7 @@ void new_insert_get_destroy(void){
     assert(table);
     assert( 32 == table->size );
     assert( 0 == table->n_elems );
+    assert( 0 == lh_load(table) );
 
 
     puts("testing insert and get");
@@ -311,6 +312,7 @@ void collision(void){
     assert(table);
     assert( 9 == table->size );
     assert( 0 == table->n_elems );
+    assert( 0 == lh_load(table) );
 
 
     puts("inserting some data");
@@ -371,6 +373,7 @@ void collision(void){
     assert( data_9 == *data );
 
     assert( 9 == table->n_elems );
+    assert( 10 == lh_load(table) );
 
     puts("testing we can still get everything out");
 
@@ -728,6 +731,10 @@ int internal(void){
     struct lh_entry static_she;
 
     puts("\ntesting internal functions");
+
+    /* lh_load */
+    puts("testing lh_load error handling");
+    assert( 0 == lh_load(0) );
 
     /* lh_strdupn */
     puts("testing lh_strdupn");

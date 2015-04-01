@@ -1013,6 +1013,31 @@ void artificial(void){
     table->entries[2].state   = LH_ENTRY_DUMMY;
     assert( 0 == lh_find_entry(table, "b") );
 
+    puts("manipulation to provoke lh_resize");
+    assert( lh_resize(table, 5) );
+    /* provoke 3 hash collision on a resize
+     * where the preferred pos is the final element
+     *
+     * we also secretly fill up the elements without
+     * increment n_elems
+     *
+     * we then resize so that there is not enough room
+     * this is only possible with manipulation as insert
+     * will increase n_elems and resize will refuse to
+     * shrink below n_elems
+     */
+    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 101; /* hash for 'c' */
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[1].hash    = 101;
+    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+    table->entries[2].hash    = 101;
+    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+    table->entries[3].hash    = 101;
+    table->entries[4].state   = LH_ENTRY_OCCUPIED;
+    table->entries[4].hash    = 101;
+    /* we won't be able to fit everything in! */
+    assert( 0 ==  lh_resize(table, 4) );
 
     puts("success!");
 }

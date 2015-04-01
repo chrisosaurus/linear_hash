@@ -549,6 +549,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
             goto LH_RESIZE_FOUND;
         }
 
+        puts("lh_resize: failed to find spot for new element!");
         return 0;
 
 LH_RESIZE_FOUND:

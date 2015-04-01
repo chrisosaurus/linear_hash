@@ -899,6 +899,42 @@ void load_resize(void){
 
 }
 
+void rollover(void){
+    struct lh_table *table = 0;
+
+    /* with length 4 and key 'c' we can hit the 3rd spot */
+    char *key = "c";
+    int data = 1;
+
+    int *d = 0;
+
+    puts("\ntesting rollover");
+
+    puts("making table");
+    table = lh_new();
+    assert(table);
+
+    /* force shrink */
+    assert( lh_resize(table, 4) );
+    assert( 4 == table->size );
+
+    /* mark 3rd position as occupied as we know
+     * that our key would end up there
+     * the intention here is to force the second for loop
+     * for insert and search to activate
+     */
+    table->entries[3].state = LH_ENTRY_OCCUPIED;
+
+    /* force insert to roll over */
+    assert( lh_insert(table, key, &data) );
+
+    /* force delete to roll over */
+    assert( lh_delete(table, key) );
+
+    /* cleanup */
+    assert( lh_destroy(table, 1, 0) );
+}
+
 int main(void){
     new_insert_get_destroy();
 
@@ -918,8 +954,9 @@ int main(void){
 
     load_resize();
 
+    rollover();
+
     puts("\noverall testing success!");
 
     return 0;
 }
-

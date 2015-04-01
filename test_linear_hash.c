@@ -906,6 +906,10 @@ void rollover(void){
     char *key = "c";
     int data = 1;
 
+    /* with length 4 we know that both 'c' and 'g' will hit the 3rd spot */
+    char *key_2 = "g";
+    int data_2 = 2;
+
     int *d = 0;
 
     puts("\ntesting rollover");
@@ -930,6 +934,27 @@ void rollover(void){
 
     /* force delete to roll over */
     assert( lh_delete(table, key) );
+
+    /* make sure to remark as empty */
+    table->entries[3].state = LH_ENTRY_EMPTY;
+
+    /* force resize to 2 */
+    assert( lh_resize(table, 2) );
+    assert( 2 == table->size );
+    assert( 0 == table->n_elems );
+
+    /* insert 2 elements that we know will collide */
+    assert( lh_insert(table, key, &data) );
+    assert( lh_insert(table, key_2, &data) );
+    /* no resize yet */
+    assert( 2 == table->size );
+
+    /* force a resize, this will move to 4
+     * and this will trigger the second for
+     * loop in lh_resize
+     */
+    assert( lh_resize(table, 4) );
+
 
     /* cleanup */
     assert( lh_destroy(table, 1, 0) );

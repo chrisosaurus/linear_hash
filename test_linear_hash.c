@@ -921,7 +921,7 @@ void rollover(void){
     /* mark 3rd position as occupied as we know
      * that our key would end up there
      * the intention here is to force the second for loop
-     * for insert and search to activate
+     * for insert and delete to activate
      */
     table->entries[3].state = LH_ENTRY_OCCUPIED;
 

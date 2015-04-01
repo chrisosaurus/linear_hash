@@ -990,6 +990,14 @@ void artificial(void){
     assert( 0 == lh_find_entry(table, "c") );
 
     table->entries[0].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 98; /* collide with b */
+    table->entries[0].key_len = 2;
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[0].hash    = 98;
+    table->entries[1].key_len = 2;
+    assert( 0 == lh_find_entry(table, "b") );
+
+    table->entries[0].state   = LH_ENTRY_OCCUPIED;
     table->entries[0].hash    = 99; /* force hash collision with c */
     table->entries[0].key_len = 4; /* but with different len */
     table->entries[0].key     = "a";

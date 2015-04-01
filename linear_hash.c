@@ -131,35 +131,6 @@ LH_INTERNAL unsigned int lh_entry_init(struct lh_entry *entry,
     return 1;
 }
 
-/* allocate and initialise a new lh_entry
- *
- * returns pointer on success
- * returns 0 on failure
- */
-#if 0
-LH_INTERNAL struct lh_entry * lh_entry_new(unsigned long int hash,
-                                           char *key,
-                                           size_t key_len,
-                                           void *data ){
-    struct lh_entry *she = 0;
-
-    /* alloc */
-    she = calloc(1, sizeof(struct lh_entry));
-    if( ! she ){
-        puts("lh_entry_new: call to calloc failed");
-        return 0;
-    }
-
-    /* init */
-    if( ! lh_entry_init(she, hash, key, key_len, data) ){
-        puts("lh_entry_new: call to lh_entry_init failed");
-        return 0;
-    }
-
-    return she;
-}
-#endif
-
 /* destroy entry
  *
  * will only free *data if `free_data` is 1

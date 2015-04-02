@@ -735,6 +735,12 @@ void error_handling(void){
     /* cannot delete a non-existent key */
     assert( 0 == lh_delete(table, key_3) );
 
+    /* lh_tune_threshold */
+    puts("testing lh_tune_threshold");
+    assert( 0 == lh_tune_threshold(0, 0) );
+    assert( 0 == lh_tune_threshold(table, 0) );
+    assert( 0 == lh_tune_threshold(table, 10) );
+
     /* lh_destroy */
     assert( 0 == lh_destroy(0, 1, 0) );
 
@@ -966,6 +972,50 @@ void rollover(void){
     assert( lh_destroy(table, 1, 0) );
 }
 
+void threshold(void){
+    struct lh_table *table = 0;
+    int data = 1;
+
+    puts("\ntesting lh load threshold setting");
+
+    puts("building table");
+    table = lh_new();
+    assert(table);
+
+    /* shrink artificially */
+    assert( lh_resize(table, 4) );
+
+    /* tune to only resize at 90% */
+    assert( lh_tune_threshold(table, 9) );
+    assert( 9 == table->threshold );
+
+    /* insert 4 times checking there has been no resizing */
+    assert( lh_insert(table, "a", &data) );
+    assert( 1 == table->n_elems );
+    assert( 4 == table->size );
+
+    assert( lh_insert(table, "b", &data) );
+    assert( 2 == table->n_elems );
+    assert( 4 == table->size );
+
+    assert( lh_insert(table, "c", &data) );
+    assert( 3 == table->n_elems );
+    assert( 4 == table->size );
+
+    assert( lh_insert(table, "d", &data) );
+    assert( 4 == table->n_elems );
+    assert( 4 == table->size );
+
+    /* insert 1 more and check resize */
+    assert( lh_insert(table, "e", &data) );
+    assert( 5 == table->n_elems );
+    assert( 8 == table->size );
+    assert( 9 == table->threshold );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
 void artificial(void){
     struct lh_table *table = 0;
     int data = 1;
@@ -1113,6 +1163,8 @@ int main(void){
     load_resize();
 
     rollover();
+
+    threshold();
 
     artificial();
 

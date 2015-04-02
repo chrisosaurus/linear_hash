@@ -327,7 +327,7 @@ LH_INTERNAL struct lh_entry * lh_find_entry(struct lh_table *table, char *key){
  ***********************************************/
 
 /* function to calculate load
- * (table->n_elems * 10) table->size
+ * (table->n_elems * 10) / table->size
  *
  * returns loading factor 0 -> 10 on success
  * returns 0 on failure
@@ -343,6 +343,34 @@ unsigned int lh_load(struct lh_table *table){
      */
     return (table->n_elems * 10) / table->size;
 }
+
+/* set the load that we resize at
+ * load is (table->n_elems * 10) / table->size
+ *
+ * this sets lh_table->threshold
+ * this defaults to LH_DEFAULT_THRESHOLD in linear_hash.c
+ * this is set to 6 (meaning 60% full) by default
+ *
+ * this will accept any value between 1 (10%) to 9 (90%)
+ *
+ * returns 1 on success
+ * returns 0 on failure
+ */
+unsigned int lh_tune_threshold(struct lh_table *table, unsigned int threshold){
+    if( ! table ){
+        puts("lh_tune_threshold: table was null");
+        return 0;
+    }
+
+    if( threshold < 1 || threshold > 9 ){
+        puts("lh_tune_threshold: threshold must be between 1 and 9 (inclusive)");
+        return 0;
+    }
+
+    table->threshold = threshold;
+    return 1;
+}
+
 
 /* takes a char* representing a string
  *

@@ -58,12 +58,26 @@ struct lh_table {
 };
 
 /* function to calculate load
- * (table->n_elems * 10) table->size
+ * (table->n_elems * 10) / table->size
  *
  * returns loading factor 0 -> 10 on success
  * returns 0 on failure
  */
 unsigned int lh_load(struct lh_table *table);
+
+/* set the load that we resize at
+ * load is (table->n_elems * 10) / table->size
+ *
+ * this sets lh_table->threshold
+ * this defaults to LH_DEFAULT_THRESHOLD in linear_hash.c
+ * this is set to 6 (meaning 60% full) by default
+ *
+ * this will accept any value between 1 (10%) to 9 (90%)
+ *
+ * returns 1 on success
+ * returns 0 on failure
+ */
+unsigned int lh_tune_threshold(struct lh_table *table, unsigned int threshold);
 
 /* takes a char* representing a string
  * and a key_len of it's size

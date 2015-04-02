@@ -351,7 +351,7 @@ unsigned int lh_load(struct lh_table *table){
  * this defaults to LH_DEFAULT_THRESHOLD in linear_hash.c
  * this is set to 6 (meaning 60% full) by default
  *
- * this will accept any value between 1 (10%) to 9 (90%)
+ * this will accept any value between 1 (10%) to 10 (100%)
  *
  * returns 1 on success
  * returns 0 on failure
@@ -362,7 +362,7 @@ unsigned int lh_tune_threshold(struct lh_table *table, unsigned int threshold){
         return 0;
     }
 
-    if( threshold < 1 || threshold > 9 ){
+    if( threshold < 1 || threshold > 10 ){
         puts("lh_tune_threshold: threshold must be between 1 and 9 (inclusive)");
         return 0;
     }
@@ -718,7 +718,7 @@ unsigned int lh_insert(struct lh_table *table, char *key, void *data){
     /* determine if we have to resize
      * note we are checking the load before the insert
      */
-    if( lh_load(table) > table->threshold ){
+    if( lh_load(table) >= table->threshold ){
         if( ! lh_resize(table, table->size * LH_SCALING_FACTOR) ){
             puts("lh_insert: call to lh_resize failed");
             return 0;

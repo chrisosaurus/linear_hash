@@ -739,7 +739,7 @@ void error_handling(void){
     puts("testing lh_tune_threshold");
     assert( 0 == lh_tune_threshold(0, 0) );
     assert( 0 == lh_tune_threshold(table, 0) );
-    assert( 0 == lh_tune_threshold(table, 10) );
+    assert( 0 == lh_tune_threshold(table, 11) );
 
     /* lh_destroy */
     assert( 0 == lh_destroy(0, 1, 0) );
@@ -883,6 +883,7 @@ void load_resize(void){
     assert( 3 == table->n_elems );
     /* however the load now will be
      * 3 / 4 = 70 %
+     * so this will trigger a resize (as 70 >= 60)
      */
     assert( 7 == lh_load(table) );
 
@@ -985,9 +986,9 @@ void threshold(void){
     /* shrink artificially */
     assert( lh_resize(table, 4) );
 
-    /* tune to only resize at 90% */
-    assert( lh_tune_threshold(table, 9) );
-    assert( 9 == table->threshold );
+    /* tune to only resize at 100% */
+    assert( lh_tune_threshold(table, 10) );
+    assert( 10 == table->threshold );
 
     /* insert 4 times checking there has been no resizing */
     assert( lh_insert(table, "a", &data) );
@@ -1010,7 +1011,7 @@ void threshold(void){
     assert( lh_insert(table, "e", &data) );
     assert( 5 == table->n_elems );
     assert( 8 == table->size );
-    assert( 9 == table->threshold );
+    assert( 10 == table->threshold );
 
     assert( lh_destroy(table, 1, 0) );
     puts("success!");

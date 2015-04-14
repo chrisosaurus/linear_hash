@@ -1105,6 +1105,24 @@ void artificial(void){
     assert( 0 ==  lh_resize(table, 4) );
 
     puts("manipulating to torture lh_delete");
+
+    /*
+     * examples of some useful keys in our length
+     * 4 table
+     *
+     * lh_pos(lh_hash(X, 1), 4) == Y
+     *
+     * for key  X  we get hash  Y
+     *
+     *  for key 'a' we get hash '1'
+     *  for key 'b' we get hash '2'
+     *  for key 'c' we get hash '3'
+     *  for key 'd' we get hash '0'
+     *  for key 'e' we get hash '1'
+     *  for key 'f' we get hash '2'
+     *  for key 'g' we get hash '3'
+     */
+
     table->entries[4].state   = LH_ENTRY_EMPTY;
     assert( lh_resize(table, 4) );
 

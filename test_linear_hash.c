@@ -1140,6 +1140,28 @@ void artificial(void){
 
     assert( 0 == lh_delete(table, "d") );
 
+    /* we want to force wrap around
+     * and then encounter an empty
+     */
+    table->entries[0].state   = LH_ENTRY_EMPTY;
+
+    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+    table->entries[1].hash    = 99; /* hash collide with c */
+    table->entries[1].key_len = 2; /* different key len*/
+    table->entries[1].key     = "z"; /* different key */
+
+    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+    table->entries[2].hash    = 99; /* hash collide with c */
+    table->entries[2].key_len = 2; /* different key len*/
+    table->entries[2].key     = "z"; /* different key */
+
+    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+    table->entries[3].hash    = 99; /* hash collide with c */
+    table->entries[3].key_len = 2; /* different key len*/
+    table->entries[3].key     = "z"; /* different key */
+
+    assert( 0 == lh_delete(table, "c") );
+
 
     puts("success!");
 }

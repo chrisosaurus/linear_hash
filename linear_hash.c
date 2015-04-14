@@ -128,10 +128,7 @@ LH_INTERNAL char * lh_strdupn(char *str, size_t len){
     }
 
     /* perform copy */
-    if( ! strncpy(new_str, str, len) ){
-        puts("lh_strdupn: call to strncpy failed");
-        return 0;
-    }
+    strncpy(new_str, str, len);
 
     /* ensure null terminator
      * do not rely on calloc as we may switch

@@ -1,0 +1,6 @@
+TODO:
+
+* should be able to trigger testing of https://coveralls.io/builds/2331614/source?filename=linear_hash.c#L942
+* consider abstracting calloc calls
+* consider allowing a compile option to cause allocs to fail for testing
+

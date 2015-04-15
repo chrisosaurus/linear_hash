@@ -34,8 +34,10 @@
 
 /* default number of slots */
 #define LH_DEFAULT_SIZE  32
+
 /* factor we grow the number of slots by each resize */
 #define LH_SCALING_FACTOR 2
+
 /* default loading factor we resize after in base 10
  * 0 through to 10
  *

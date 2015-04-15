@@ -5,5 +5,5 @@ compiler: gcc
 sudo: false
 
 script:
-    - make travis
+    - make test
 

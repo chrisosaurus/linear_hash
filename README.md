@@ -1,4 +1,4 @@
-# Linear hash [![Coverage Status](https://coveralls.io/repos/mkfifo/linear_hash/badge.svg?branch=master)](https://coveralls.io/r/mkfifo/linear_hash?branch=master)
+# Linear hash [![Build Status](https://travis-ci.org/mkfifo/linear_hash.svg)](https://travis-ci.org/mkfifo/linear_hash) [![Coverage Status](https://coveralls.io/repos/mkfifo/linear_hash/badge.svg?branch=master)](https://coveralls.io/r/mkfifo/linear_hash?branch=master)
 
 An implementation of a linear probing hash table written in pure C99 with no external dependencies
 

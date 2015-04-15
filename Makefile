@@ -7,9 +7,7 @@ OBJ = ${SRC:.c=.o}
 
 EXTRAFLAGS =
 
-# default to error
-all: linear_hash
-
+# default to error all: linear_hash 
 %.o: %.c
 	@echo COMPILING CC $< with extra flags \"${EXTRAFLAGS}\"
 	@${CC} -g -c ${CFLAGS} -DLH_TEST $< ${EXTRAFLAGS} -o $@
@@ -43,5 +41,15 @@ compile_tests: clean ${OBJ}
 	@${CC} test_linear_hash.c -o test_lh ${LDFLAGS} ${OBJ}
 	@make -s cleanobj
 
-.PHONY: all clean cleanobj linear_hash test
+travis:
+	@echo "compiling for travis ci"
+	@${CC} -g -c ${TRAVIS_CFLAGS} -DLH_TEST linear_hash.c ${EXTRAFLAGS} -o linear_hash.o
+	@echo "compiling tests for travis ci"
+	@${CC} test_linear_hash.c -o test_lh ${LDFLAGS} linear_hash.o
+	@echo "running tests"
+	@echo "\n\nrunning test_lh"
+	./test_lh
+	@echo "\n"
+
+.PHONY: all clean cleanobj linear_hash test travis
 

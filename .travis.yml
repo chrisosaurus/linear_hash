@@ -5,6 +5,5 @@ compiler: gcc
 sudo: false
 
 script:
-    - make
     - make test
 

@@ -753,6 +753,7 @@ void internal(void){
     struct lh_table table;
     struct lh_entry she;
     struct lh_entry static_she;
+    char * str = 0;
 
     puts("\ntesting internal functions");
 
@@ -763,7 +764,9 @@ void internal(void){
     /* lh_strdupn */
     puts("testing lh_strdupn");
     assert( 0 == lh_strdupn(0, 6) );
-    assert( lh_strdupn("hello", 0) );
+    str = lh_strdupn("hello", 0);
+    assert(str);
+    free(str);
 
     /* lh_entry_new and lh_entry_init */
     puts("testing lh_entry_new and lh_entry_init");

@@ -1,7 +1,4 @@
-# Linear hash [![Build Status](https://travis-ci.org/mkfifo/linear_hash.svg)](https://travis-ci.org/mkfifo/linear_hash) [![Coverage Status](https://coveralls.io/repos/mkfifo/linear_hash/badge.svg?branch=master)](https://coveralls.io/r/mkfifo/linear_hash?branch=master) <a href="https://scan.coverity.com/projects/4850">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/4850/badge.svg"/>
-</a>
+# Linear hash [![Build Status](https://travis-ci.org/mkfifo/linear_hash.svg)](https://travis-ci.org/mkfifo/linear_hash) [![Coverage Status](https://coveralls.io/repos/mkfifo/linear_hash/badge.svg?branch=master)](https://coveralls.io/r/mkfifo/linear_hash?branch=master) <a href="https://scan.coverity.com/projects/4850"> <img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/4850/badge.svg"/> </a>
 
 An implementation of a linear probing hash table written in pure C99 with no external dependencies
 

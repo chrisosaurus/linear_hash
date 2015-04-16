@@ -469,6 +469,8 @@ struct lh_table * lh_new(void){
     /* init */
     if( ! lh_init(sht, LH_DEFAULT_SIZE) ){
         puts("lh_new: call to lh_init failed");
+        /* make sure to free our allocate lh_table */
+        free(sht);
         return 0;
     }
 

@@ -3,4 +3,5 @@ TODO:
 * document all the crazy in test_linear_hash.c
 * consider abstracting calloc calls
 * consider allowing a compile option to cause allocs to fail for testing
+* currently we lh_strdup every key, this is not required if the caller can guarantee that the string will live as long as the hash (say if the string is within the stored data), may want a way to fix this
 

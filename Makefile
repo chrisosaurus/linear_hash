@@ -10,7 +10,7 @@ EXTRAFLAGS =
 # default to error all: linear_hash 
 %.o: %.c
 	@echo COMPILING CC $< with extra flags \"${EXTRAFLAGS}\"
-	@${CC} -g -c ${CFLAGS} -DLH_TEST $< ${EXTRAFLAGS} -o $@
+	@${CC} -g -c ${CFLAGS} $< ${EXTRAFLAGS} -o $@
 
 linear_hash: ${OBJ}
 	@echo "ERROR: unable to compile linear_hash on it's own as it is a library"

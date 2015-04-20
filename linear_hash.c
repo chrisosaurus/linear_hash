@@ -45,6 +45,9 @@
  */
 #define LH_DEFAULT_THRESHOLD 6
 
+/* leaving this in place as we have some internal only helper functions
+ * that we only exposed to allow for easy testing and extension
+ */
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
 /**********************************************
@@ -57,6 +60,7 @@
 
 /* NOTE these helper functions are not exposed in our header
  * but are not static so as to allow easy unit testing
+ * or extension
  */
 
 /* logic for testing if the current entry is eq to the

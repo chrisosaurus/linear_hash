@@ -1,5 +1,6 @@
 TODO:
 
+* add the ability to iterate through all the keys stored inside the dict
 * document all the crazy in test_linear_hash.c
 * consider abstracting calloc calls
 * consider allowing a compile option to cause allocs to fail for testing

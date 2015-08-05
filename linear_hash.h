@@ -178,5 +178,5 @@ void * lh_get(struct lh_table *table, const char *key);
  */
 void *  lh_delete(struct lh_table *table, const char *key);
 
+#endif // ifndef LINEAR_HASH_H
 
-#endif // ifndef linear_halh_H

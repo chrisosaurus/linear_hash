@@ -330,7 +330,7 @@ struct lh_entry * lh_find_entry(const struct lh_table *table, const char *key){
  */
 unsigned int lh_nelems(const struct lh_table *table){
     if( ! table ){
-        puts("lh_load: table was null");
+        puts("lh_nelems: table was null");
         return 0;
     }
 

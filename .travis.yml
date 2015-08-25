@@ -1,9 +1,11 @@
 language: c
 
 compiler: gcc
+t
+sudo: false
 
 before_install:
-  - sudo pip install cpp-coveralls
+    - pip install --user cpp-coveralls
 
 script:
     - make test

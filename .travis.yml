@@ -1,7 +1,7 @@
 language: c
 
 compiler: gcc
-t
+
 sudo: false
 
 before_install:

@@ -66,5 +66,7 @@ Example usage
          * but do not free stored data
          * destroy(table, free_table, free_data) */
         lh_destroy(t,     1,          0);
+
+        return 0;
     }
 

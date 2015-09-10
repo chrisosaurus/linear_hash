@@ -23,6 +23,7 @@ cleanobj:
 clean: cleanobj
 	@echo cleaning tests
 	@rm -f test_lh
+	@rm -f test_glh
 	@echo cleaning gcov guff
 	@find . -iname '*.gcda' -delete
 	@find . -iname '*.gcov' -delete

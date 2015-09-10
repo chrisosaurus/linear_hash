@@ -41,5 +41,10 @@ compile_tests: clean ${OBJ}
 	@${CC} test_linear_hash.c -o test_lh ${LDFLAGS} ${OBJ}
 	@make -s cleanobj
 
-.PHONY: all clean cleanobj linear_hash test
+example: clean ${OBJ}
+	@echo "compiling and running example"
+	@${CC} example.c -o example ${LDFLAGS} ${OBJ}
+	./example
+
+.PHONY: all clean cleanobj linear_hash test example
 

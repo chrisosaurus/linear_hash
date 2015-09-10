@@ -1,5 +1,7 @@
 #include "linear_hash.h"
 
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+
 int main(void){
     /* create a hash
      * the hash will automatically manage
@@ -36,5 +38,7 @@ int main(void){
      * but do not free stored data
      * destroy(table, free_table, free_data) */
     lh_destroy(t,     1,          0);
+
+    return 0;
 }
 

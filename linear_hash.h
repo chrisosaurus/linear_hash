@@ -31,7 +31,7 @@
 enum lh_entry_state {
     LH_ENTRY_EMPTY,
     LH_ENTRY_OCCUPIED,
-    LH_ENTRY_DUMMY // was occupied but now delete
+    LH_ENTRY_DUMMY /* was occupied but now delete */
 };
 
 struct lh_entry {

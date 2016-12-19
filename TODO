@@ -1,6 +1,5 @@
 TODO:
 
-* set only works if key exists, insert only works if key doesn't exist, should provider option for caller who doesn't care.
 * add the ability to iterate through all the keys stored inside the dict
 * document all the crazy in test_linear_hash.c
 * consider abstracting calloc calls

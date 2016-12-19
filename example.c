@@ -26,8 +26,11 @@ int main(void){
     /* delete existing data */
     lh_delete(t, "world");
 
-    /* mutate existing data */
-    lh_set(t, "hello", &data_2);
+    /* update existing data */
+    lh_update(t, "hello", &data_2);
+
+    /* either insert or update as need be*/
+    lh_set(t, "boop", &data_2);
 
     /* check a key exists */
     if( lh_exists(t, "hello") ){

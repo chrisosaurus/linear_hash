@@ -1042,8 +1042,8 @@ LH_DELETE_FOUND:
  * calling the provided function on each pair.
  *
  * the function is allowed to modify the value but cannot modify the key.
- * the function should not access the hashtable in anyway including:
- *  modifying the hash function other than through the value pointer given
+ * the function should not access the hash table in anyway including:
+ *  modifying the hash table other than through the value pointer given
  *  calling any other hash table functions
  *
  * the function will be given the value of the `state` pointer for each call,

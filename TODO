@@ -1,5 +1,8 @@
 TODO:
 
+* lh_entry is still quite big, I'm worried about cache lining
+ - consider breaking into a few arrays as discussed in http://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/
+* investigate the ideal loading threshold
 * document all the crazy in test_linear_hash.c
 * consider abstracting calloc calls
 * consider allowing a compile option to cause allocs to fail for testing

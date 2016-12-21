@@ -103,7 +103,7 @@ marked by an enum to show if it is in use or not,
 it may be worth breaking this struct out into 2 or so arrays to improve cache
 lines.
 
-A rough diagram of the internals of how a simple hash of size 8 would look:
+A rough diagram of the internals of how a linear hash of size 8 would look:
 
       lh_table
     size    = 8
@@ -116,7 +116,7 @@ A rough diagram of the internals of how a simple hash of size 8 would look:
                         key  = *   key  = *   key  = *           key  = *
                         data = *   data = *   data = *           data = *
 
-Here we can see an sh_table of size 8 containing 4 entries.
+Here we can see an lh_table of size 8 containing 4 entries.
 
 We can see that 2 of the entries collided on a hash of `X`,
 the first to be inserted landed in the ideal bucket of [1]

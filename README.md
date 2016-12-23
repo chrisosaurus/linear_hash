@@ -1,6 +1,6 @@
 # Linear hash [![Build Status](https://travis-ci.org/mkfifo/linear_hash.svg)](https://travis-ci.org/mkfifo/linear_hash) [![Coverage Status](https://coveralls.io/repos/mkfifo/linear_hash/badge.svg?branch=master)](https://coveralls.io/r/mkfifo/linear_hash?branch=master) <a href="https://scan.coverity.com/projects/4850"> <img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/4850/badge.svg"/> </a>
 
-An implementation of a linear probing hash table written in pure C99 with no external dependencies
+An implementation of a linear probing unordered hash table written in pure C99 with no external dependencies
 
 Linear hash is licensed under the MIT license, see LICENSE for more details
 
@@ -76,7 +76,7 @@ Example usage
 Internal implementation
 -----------------------
 
-Linear hash is an unhardened linear probing hash backed by a dense array.
+Linear hash is an unhardened linear probing unordered hash backed by a dense array.
 
 Every incoming key is first hashed, this hash is then taken and modulo-d to find
 an appropriate slot for it, if this slot is already occupied then linear probing

@@ -5,6 +5,7 @@ compiler: gcc
 sudo: false
 
 before_install:
+    - pip install --user urllib3[secure]
     - pip install --user cpp-coveralls
 
 script:

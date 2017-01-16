@@ -1,5 +1,8 @@
 TODO:
 
+* fork off linear_hash with 'dummy' and make 'dummy-free' version
+* profile and compare: (1) original (pre cent), (2) centralised, (3) centralised without dummy
+* port centralised search logic commit to linear_set
 * lh_entry is still quite big, I'm worried about cache lining
  - consider breaking into a few arrays as discussed in http://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/
 * investigate the ideal loading threshold

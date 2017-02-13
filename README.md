@@ -133,4 +133,43 @@ From this table layout, if we assuming the X and Y collided, then we know
 and
 `Z % 8 == 5`.
 
+Performance
+-----------
+
+    $ make profile
+    cleaning objects and temporary files
+    cleaning tests
+    cleaning gcov guff
+    COMPILING CC linear_hash.c with extra flags ""
+    Downloading moby dick text ~1.2 MiB
+    curl http://www.gutenberg.org/files/2701/2701.txt -o moby_dick.txt
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100 1227k  100 1227k    0     0   266k      0  0:00:04  0:00:04 --:--:--  307k
+    Generating profile_keys.sh
+
+    ./generate_profile_keys.sh
+    linear_hash.o
+    compiling profile_lh
+
+
+    running profile_lh
+    ./profile_lh
+
+    Profiling Set - repeating keys
+    10000000 set(s) took '1630' ms total or '0.000163' ms each
+    10000000 get(s) took '1531' ms total or '0.000153' ms each
+    10000000 exists(s) took '1486' ms total or '0.000149' ms each
+
+    Profiling Set - unique keys
+    35591 set(s) took '14' ms total or '0.000393' ms each
+    35591 get(s) took '7' ms total or '0.000197' ms each
+    35591 exists(s) took '8' ms total or '0.000225' ms each
+
+    Profiling Insert - unique keys
+    35591 insert(s) took '13' ms total or '0.000365' ms each
+    35591 get(s) took '6' ms total or '0.000169' ms each
+    35591 exists(s) took '7' ms total or '0.000197' ms each
+
+    Success
 

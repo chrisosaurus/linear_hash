@@ -1,4 +1,8 @@
 test_lh
+profile_lh
+
+profile_keys.c
+moby_dick.txt
 
 *.o
 

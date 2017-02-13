@@ -24,28 +24,49 @@ clean: cleanobj
 	@echo cleaning tests
 	@rm -f test_lh
 	@rm -f test_glh
+	@rm -f profile_lh
+	@rm -f example
 	@echo cleaning gcov guff
 	@find . -iname '*.gcda' -delete
 	@find . -iname '*.gcov' -delete
 	@find . -iname '*.gcno' -delete
 
+test:
+	make run_tests
+	make profile
 
-test: run_tests
-
-run_tests: compile_tests
-	@echo -e "\n\nrunning test_lh"
-	./test_lh
-	@echo -e "\n"
-
-compile_tests: clean ${OBJ}
+test_lh: clean ${OBJ}
 	@echo "compiling tests"
 	@${CC} test_linear_hash.c -o test_lh ${LDFLAGS} ${OBJ}
 	@make -s cleanobj
 
-example: clean ${OBJ}
+run_tests: test_lh
+	@echo -e "\n\nrunning test_lh"
+	./test_lh
+	@echo -e "\n"
+
+profile_lh: ${OBJ} profile_keys.c
+	@echo ${OBJ}
+	@echo "compiling profile_lh"
+	@${CC} profile_lh.c -o profile_lh ${LDFLAGS} ${OBJ}
+
+profile: clean profile_lh
+	@echo -e "\n\nrunning profile_lh"
+	./profile_lh
+	@echo -e "\n"
+
+example: ${OBJ}
 	@echo "compiling and running example"
 	@${CC} example.c -o example ${LDFLAGS} ${OBJ}
 	./example
 
-.PHONY: all clean cleanobj linear_hash test example
+moby_dick.txt:
+	@echo "Downloading moby dick text ~1.2 MiB"
+	curl http://www.gutenberg.org/files/2701/2701.txt -o moby_dick.txt
+
+profile_keys.c: moby_dick.txt
+	@echo -e "Generating profile_keys.sh\n"
+	./generate_profile_keys.sh
+
+.PHONY: all clean cleanobj linear_hash profle run_tests test
 

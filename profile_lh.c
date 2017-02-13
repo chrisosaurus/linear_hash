@@ -48,7 +48,7 @@ int main(void){
 
     unsigned int i = 0;
     unsigned int key_i = 0;
-    char *key = 0;
+    const char *key = 0;
 
     unsigned long int time_start_ms = 0;
     unsigned long int time_end_ms = 0;

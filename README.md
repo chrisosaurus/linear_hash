@@ -136,6 +136,10 @@ and
 Performance
 -----------
 
+You can run a quick profile via `make profile`.
+
+On my thinkpad carbon X1 laptop (i5-3317U CPU, 4GiB RAM):
+
     $ make profile
     cleaning objects and temporary files
     cleaning tests

@@ -31,11 +31,9 @@ clean: cleanobj
 	@find . -iname '*.gcov' -delete
 	@find . -iname '*.gcno' -delete
 
-test:
-	make run_tests
-	make profile
+test: clean run_tests
 
-test_lh: clean ${OBJ}
+test_lh: ${OBJ}
 	@echo "compiling tests"
 	@${CC} test_linear_hash.c -o test_lh ${LDFLAGS} ${OBJ}
 	@make -s cleanobj

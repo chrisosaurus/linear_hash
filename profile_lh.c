@@ -60,47 +60,61 @@ int main(void){
 
     unsigned long int ret = 0;
 
-    puts("\nProfiling Set - repeating keys");
-    t = lh_new();
-    PROFILE("set", lh_set(t, key, &data_1), 1);
-    PROFILE("get", lh_get(t, key), &data_1);
-    PROFILE("exists", lh_exists(t, key), 1);
-    /* tidy up
-     * free table
-     * but do not free stored data
-     * destroy(table, free_table, free_data) */
-    lh_destroy(t,     1,          0);
+    {
+      t = lh_new();
 
-    puts("\nProfiling Set - unique keys");
-    t = lh_new();
-    /* profile set
-     * like insert, do not use duplicate keys
-     */
-    num_inserts = num_keys;
-    PROFILE("set", lh_set(t, key, &data_1), 1);
-    PROFILE("get", lh_get(t, key), &data_1);
-    PROFILE("exists", lh_exists(t, key), 1);
-    /* tidy up
-     * free table
-     * but do not free stored data
-     * destroy(table, free_table, free_data) */
-    lh_destroy(t,     1,          0);
+      puts("\nProfiling Set - repeating keys");
+      PROFILE("set", lh_set(t, key, &data_1), 1);
+      PROFILE("get", lh_get(t, key), &data_1);
+      PROFILE("exists", lh_exists(t, key), 1);
 
-    puts("\nProfiling Insert - unique keys");
-    t = lh_new();
-    /* profile insert
-     * cannot handle duplicate keys
-     * so only insert each key once
-     */
-    num_inserts = num_keys;
-    PROFILE("insert", lh_insert(t, key, &data_1), 1);
-    PROFILE("get", lh_get(t, key), &data_1);
-    PROFILE("exists", lh_exists(t, key), 1);
-    /* tidy up
-     * free table
-     * but do not free stored data
-     * destroy(table, free_table, free_data) */
-    lh_destroy(t,     1,          0);
+      /* tidy up
+       * free table
+       * but do not free stored data
+       * destroy(table, free_table, free_data) */
+      lh_destroy(t,     1,          0);
+    }
+
+    {
+      t = lh_new();
+
+      puts("\nProfiling Set - unique keys");
+      /* profile set
+       * like insert, do not use duplicate keys
+       */
+      num_inserts = num_keys;
+      PROFILE("set", lh_set(t, key, &data_1), 1);
+      PROFILE("get", lh_get(t, key), &data_1);
+      PROFILE("exists", lh_exists(t, key), 1);
+      PROFILE("delete", lh_delete(t, key), &data_1);
+
+      /* tidy up
+       * free table
+       * but do not free stored data
+       * destroy(table, free_table, free_data) */
+      lh_destroy(t,     1,          0);
+    }
+
+    {
+      t = lh_new();
+
+      puts("\nProfiling Insert - unique keys");
+      /* profile insert
+       * cannot handle duplicate keys
+       * so only insert each key once
+       */
+      num_inserts = num_keys;
+      PROFILE("insert", lh_insert(t, key, &data_1), 1);
+      PROFILE("get", lh_get(t, key), &data_1);
+      PROFILE("exists", lh_exists(t, key), 1);
+      PROFILE("delete", lh_delete(t, key), &data_1);
+
+      /* tidy up
+       * free table
+       * but do not free stored data
+       * destroy(table, free_table, free_data) */
+      lh_destroy(t,     1,          0);
+    }
 
     puts("\nSuccess");
     return 0;

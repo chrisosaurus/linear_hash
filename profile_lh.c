@@ -26,7 +26,7 @@
     time_end_ms = (tv_end.tv_sec * 1000) + (tv_end.tv_usec / 1000); \
     time_diff_ms = time_end_ms - time_start_ms; \
     time_each_ms = (double)time_diff_ms / (double)num_inserts; \
-    printf("%u %s(s) took '%lu' ms total or '%f' ns each\n", num_inserts, name, time_diff_ms, time_each_ms * 1000);
+    printf("%10u \t %s(s) \t took %10lu ms total or \t %.4f ns each\n", num_inserts, name, time_diff_ms, time_each_ms * 1000);
 
 
 int main(void){

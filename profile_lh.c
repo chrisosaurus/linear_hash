@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include <assert.h>
 
 #include "linear_hash.h"
 /*
@@ -66,7 +67,7 @@ int main(void){
     unsigned long int ret = 0;
 
     {
-      t = lh_new();
+      assert(t = lh_new());
 
       puts("\nProfiling Set - repeating keys");
       PROFILE("set", lh_set(t, key, &data_1), 1);
@@ -77,11 +78,11 @@ int main(void){
        * free table
        * but do not free stored data
        * destroy(table, free_table, free_data) */
-      lh_destroy(t,     1,          0);
+      assert(lh_destroy(t,     1,          0));
     }
 
     {
-      t = lh_new();
+      assert(t = lh_new());
 
       puts("\nProfiling Set - unique keys");
       /* profile set
@@ -97,11 +98,11 @@ int main(void){
        * free table
        * but do not free stored data
        * destroy(table, free_table, free_data) */
-      lh_destroy(t,     1,          0);
+      assert(lh_destroy(t,     1,          0));
     }
 
     {
-      t = lh_new();
+      assert(t = lh_new());
 
       puts("\nProfiling Insert - unique keys");
       /* profile insert
@@ -118,7 +119,7 @@ int main(void){
        * free table
        * but do not free stored data
        * destroy(table, free_table, free_data) */
-      lh_destroy(t,     1,          0);
+      assert(lh_destroy(t,     1,          0));
     }
 
     puts("\nSuccess");

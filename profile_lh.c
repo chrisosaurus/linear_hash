@@ -22,11 +22,12 @@
       } \
     } \
     gettimeofday(&tv_end, NULL); \
-    time_start_ms = (tv_start.tv_sec * 1000) + (tv_start.tv_usec / 1000); \
-    time_end_ms = (tv_end.tv_sec * 1000) + (tv_end.tv_usec / 1000); \
-    time_diff_ms = time_end_ms - time_start_ms; \
-    time_each_ms = (double)time_diff_ms / (double)num_inserts; \
-    printf("%10u \t %s(s) \t took %10lu ms total or \t %.4f ns each\n", num_inserts, name, time_diff_ms, time_each_ms * 1000);
+    time_start_ns = (tv_start.tv_sec * 1000 * 1000) + (tv_start.tv_usec); \
+    time_end_ns = (tv_end.tv_sec * 1000 * 1000) + (tv_end.tv_usec); \
+    time_diff_ns = time_end_ns - time_start_ns; \
+    time_each_ns = (double)time_diff_ns / (double)num_inserts; \
+    time_diff_ms = (double)time_diff_ns / 1000; \
+    printf("%10u \t %s(s) \t took %10.2f ms total or \t %.4f ns each\n", num_inserts, name, time_diff_ms, time_each_ns);
 
 
 int main(void){
@@ -50,10 +51,14 @@ int main(void){
     unsigned int key_i = 0;
     const char *key = 0;
 
-    unsigned long int time_start_ms = 0;
-    unsigned long int time_end_ms = 0;
-    unsigned long int time_diff_ms = 0;
-    double time_each_ms = 0;
+    /* re record as ns, never dividing */
+    unsigned long int time_start_ns = 0;
+    unsigned long int time_end_ns = 0;
+    unsigned long int time_diff_ns = 0;
+
+    /* we finally convert to floating points of the appropriate prefix */
+    double time_diff_ms = 0;
+    double time_each_ns = 0;
 
     struct timeval tv_start;
     struct timeval tv_end;

@@ -161,19 +161,21 @@ On my thinkpad carbon X1 laptop (i5-3317U CPU, 4GiB RAM):
     ./profile_lh
 
     Profiling Set - repeating keys
-    10000000 set(s) took '1656' ms total or '0.165600' ns each
-    10000000 get(s) took '1579' ms total or '0.157900' ns each
-    10000000 exists(s) took '1501' ms total or '0.150100' ns each
+      10000000   set(s)      took    1718.22 ms total or   0.1718 ns each
+      10000000   get(s)      took    1610.35 ms total or   0.1610 ns each
+      10000000   exists(s)   took    1658.63 ms total or   0.1659 ns each
 
     Profiling Set - unique keys
-    35591 set(s) took '14' ms total or '0.393358' ns each
-    35591 get(s) took '6' ms total or '0.168582' ns each
-    35591 exists(s) took '7' ms total or '0.196679' ns each
+         35591   set(s)      took      14.18 ms total or   0.3983 ns each
+         35591   get(s)      took       6.57 ms total or   0.1845 ns each
+         35591   exists(s)   took       7.50 ms total or   0.2107 ns each
+         35591   delete(s)   took       7.92 ms total or   0.2224 ns each
 
     Profiling Insert - unique keys
-    35591 insert(s) took '13' ms total or '0.365261' ns each
-    35591 get(s) took '6' ms total or '0.168582' ns each
-    35591 exists(s) took '6' ms total or '0.168582' ns each
+         35591   insert(s)   took      11.04 ms total or   0.3103 ns each
+         35591   get(s)      took       5.77 ms total or   0.1622 ns each
+         35591   exists(s)   took       7.42 ms total or   0.2085 ns each
+         35591   delete(s)   took       7.92 ms total or   0.2225 ns each
 
     Success
 

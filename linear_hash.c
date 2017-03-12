@@ -38,12 +38,13 @@
 /* factor we grow the number of slots by each resize */
 #define LH_SCALING_FACTOR 2
 
-/* default loading factor we resize after in base 10
- * 0 through to 10
+/* default loading factor (percentage) we resize after
  *
- * default is 6 so 60 %
+ * 1 through to 100 (inclusive)
+ *
+ * default is 60%
  */
-#define LH_DEFAULT_THRESHOLD 6
+#define LH_DEFAULT_THRESHOLD 60
 
 /* leaving this in place as we have some internal only helper functions
  * that we only exposed to allow for easy testing and extension
@@ -66,6 +67,7 @@
  */
 
 /* logic for testing if the current entry is eq to the
+ *
  * provided hash, key_len and key
  * this is to centralise the once scattered logic
  */
@@ -445,10 +447,10 @@ unsigned int lh_nelems(const struct lh_table *table){
     return table->n_elems;
 }
 
-/* function to calculate load
+/* function to calculate load percentage
  * (table->n_elems * 10) / table->size
  *
- * returns loading factor 0 -> 10 on success
+ * returns loading factor 0 -> 100 on success
  * returns 0 on failure
  */
 unsigned int lh_load(const struct lh_table *table){
@@ -457,20 +459,17 @@ unsigned int lh_load(const struct lh_table *table){
         return 0;
     }
 
-    /* here we multiply by 10 to avoid floating point
-     * as we only care about the most significant figure
-     */
-    return (table->n_elems * 10) / table->size;
+    return (table->n_elems * 100) / table->size;
 }
 
 /* set the load that we resize at
- * load is (table->n_elems * 10) / table->size
+ * load is table->n_elems / table->size
  *
  * this sets lh_table->threshold
  * this defaults to LH_DEFAULT_THRESHOLD in linear_hash.c
- * this is set to 6 (meaning 60% full) by default
+ * this is set to 60 (meaning 60% full) by default
  *
- * this will accept any value between 1 (10%) to 10 (100%)
+ * this will accept any value between 1 (1%) to 100 (100%) inclusive
  *
  * returns 1 on success
  * returns 0 on failure
@@ -481,7 +480,7 @@ unsigned int lh_tune_threshold(struct lh_table *table, unsigned int threshold){
         return 0;
     }
 
-    if( threshold < 1 || threshold > 10 ){
+    if( threshold < 1 || threshold > 100 ){
         puts("lh_tune_threshold: threshold must be between 1 and 9 (inclusive)");
         return 0;
     }

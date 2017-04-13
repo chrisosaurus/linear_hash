@@ -1,7 +1,5 @@
 #include "linear_hash.h"
 
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-
 int main(void){
     /* create a hash
      * the hash will automatically manage

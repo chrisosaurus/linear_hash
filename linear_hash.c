@@ -31,6 +31,7 @@
 #include <stddef.h> /* size_t */
 
 #include "linear_hash.h"
+#include "linear_hash_internal.h"
 
 /* default number of slots */
 #define LH_DEFAULT_SIZE  32
@@ -46,13 +47,6 @@
  */
 #define LH_DEFAULT_THRESHOLD 60
 
-/* leaving this in place as we have some internal only helper functions
- * that we only exposed to allow for easy testing and extension
- */
-#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-
-
-
 /**********************************************
  **********************************************
  **********************************************
@@ -61,9 +55,10 @@
  **********************************************
  ***********************************************/
 
-/* NOTE these helper functions are not exposed in our header
- * but are not static so as to allow easy unit testing
- * or extension
+/* NOTE these helper functions are not part of our public interface
+ * and so are not exposed in linear_hash.h
+ * instead these are exposed in linear_hash_internal.h
+ * to make testing easier
  */
 
 /* logic for testing if the current entry is eq to the
@@ -265,26 +260,6 @@ unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data){
 
     return 1;
 }
-
-enum lh_find_entry_state {
-    /* error:
-     *  arguments were bad
-     *  call to internal function failed
-     *  failed to find dummy OR empty
-     */
-    LH_FIND_ENTRY_STATE_ERROR  = 0,
-
-    /* key did exist
-     * returned entry that is occupied
-     */
-    LH_FIND_ENTRY_STATE_EXISTS = 1,
-
-    /* key didn't already exist
-     * returned entry that is either dummy or empty
-     * returned entry is place that key *should* go
-     */
-    LH_FIND_ENTRY_STATE_SLOT   = 2,
-};
 
 /* centralised searching logic
  * will find where a key is *if* it exists

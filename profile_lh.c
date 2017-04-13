@@ -11,8 +11,6 @@
 
 #include "profile_keys.c"
 
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-
 #define PROFILE(name, fcall, exp_res) \
     gettimeofday(&tv_start, NULL); \
     for( i=0, key_i=0; i<num_inserts; ++i, key_i = (1+key_i) % num_keys ){ \

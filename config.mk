@@ -19,4 +19,3 @@ LDFLAGS = -fprofile-arcs ${LIBS}
 # gcov free version
 #LDFLAGS = ${LIBS}
 
-CC = cc

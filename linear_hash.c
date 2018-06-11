@@ -456,7 +456,7 @@ unsigned int lh_tune_threshold(struct lh_table *table, unsigned int threshold){
     }
 
     if( threshold < 1 || threshold > 100 ){
-        puts("lh_tune_threshold: threshold must be between 1 and 9 (inclusive)");
+        puts("lh_tune_threshold: threshold must be between 1 (1%%) and 100 (100%%) (inclusive)");
         return 0;
     }
 

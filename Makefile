@@ -30,6 +30,8 @@ clean: cleanobj
 	@find . -iname '*.gcda' -delete
 	@find . -iname '*.gcov' -delete
 	@find . -iname '*.gcno' -delete
+	@rm -rf profile_keys.c
+	@rm -rf moby_dick.txt
 
 test: clean run_tests
 

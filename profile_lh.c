@@ -11,7 +11,7 @@
 
 #include "profile_keys.c"
 
-#define PROFILE(name, fcall, exp_res) \
+#define PROFILE(name, keys, fcall, exp_res) \
     gettimeofday(&tv_start, NULL); \
     for( i=0, key_i=0; i<num_inserts; ++i, key_i = (1+key_i) % num_keys ){ \
       key = keys[key_i]; \
@@ -44,7 +44,8 @@ int main(void){
 
     unsigned int num_inserts_million = 10;
     unsigned int num_inserts = num_inserts_million * 1000000;
-    unsigned int num_keys = sizeof(keys) / sizeof(keys[0]);
+    /* for size can use any of the 4 keys as they are all the same length */
+    unsigned int num_keys = sizeof(insert_keys) / sizeof(insert_keys[0]);
 
     unsigned int i = 0;
     unsigned int key_i = 0;
@@ -68,9 +69,9 @@ int main(void){
       assert(t = lh_new());
 
       puts("\nProfiling Set - repeating keys");
-      PROFILE("set", lh_set(t, key, &data_1), 1);
-      PROFILE("get", lh_get(t, key), &data_1);
-      PROFILE("exists", lh_exists(t, key), 1);
+      PROFILE("set", set_keys, lh_set(t, key, &data_1), 1);
+      PROFILE("get", get_keys, lh_get(t, key), &data_1);
+      PROFILE("exists", exists_keys, lh_exists(t, key), 1);
 
       /* tidy up
        * free table
@@ -87,10 +88,10 @@ int main(void){
        * like insert, do not use duplicate keys
        */
       num_inserts = num_keys;
-      PROFILE("set", lh_set(t, key, &data_1), 1);
-      PROFILE("get", lh_get(t, key), &data_1);
-      PROFILE("exists", lh_exists(t, key), 1);
-      PROFILE("delete", lh_delete(t, key), &data_1);
+      PROFILE("set", set_keys, lh_set(t, key, &data_1), 1);
+      PROFILE("get", get_keys, lh_get(t, key), &data_1);
+      PROFILE("exists", exists_keys, lh_exists(t, key), 1);
+      PROFILE("delete", delete_keys, lh_delete(t, key), &data_1);
 
       /* tidy up
        * free table
@@ -108,10 +109,10 @@ int main(void){
        * so only insert each key once
        */
       num_inserts = num_keys;
-      PROFILE("insert", lh_insert(t, key, &data_1), 1);
-      PROFILE("get", lh_get(t, key), &data_1);
-      PROFILE("exists", lh_exists(t, key), 1);
-      PROFILE("delete", lh_delete(t, key), &data_1);
+      PROFILE("insert", insert_keys, lh_insert(t, key, &data_1), 1);
+      PROFILE("get", get_keys, lh_get(t, key), &data_1);
+      PROFILE("exists", exists_keys, lh_exists(t, key), 1);
+      PROFILE("delete", delete_keys, lh_delete(t, key), &data_1);
 
       /* tidy up
        * free table

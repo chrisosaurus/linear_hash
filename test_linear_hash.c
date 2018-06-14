@@ -1217,218 +1217,218 @@ void threshold(void){
     puts("success!");
 }
 
-void artificial(void){
-    struct lh_table *table = 0;
-    int data = 1;
-    struct lh_entry *entry = 0;
-    unsigned int find_entry_return;
-
-    puts("\ntesting artificial linear search failure");
-
-    puts("building table");
-    table = lh_new();
-    assert(table);
-
-    /* shrink artificially */
-    assert( lh_resize(table, 2) );
-
-    puts("manipulating and testing of find and insert");
-    /* fill only positions */
-    table->entries[0].state = LH_ENTRY_OCCUPIED;
-    table->entries[1].state = LH_ENTRY_OCCUPIED;
-    /* an insert should fail as this table is full */
-    assert( 0 == lh_insert(table, "c", &data) );
-
-    puts("further manipulation for lh_find_entry");
-    table->entries[0].state = LH_ENTRY_DUMMY;
-    table->entries[1].state = LH_ENTRY_DUMMY;
-    entry = 0;
-    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( 1 == find_entry_return );
-    /* check that entry was changed */
-    assert( 0 != entry );
-
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 98; /* collide with b */
-    table->entries[0].key_len = 2;  /* with different key_len */
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 98; /* collide with b */
-    table->entries[1].key_len = 2;  /* with different key_len */
-    /* table full, no possible space, error */
-    entry = 0;
-    find_entry_return = lh_find_entry(table, 0, "b", 0, &entry);
-    assert( 0 == find_entry_return );
-    /* check entry is unchanged */
-    assert( 0 == entry );
-
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 99; /* force hash collision with c */
-    table->entries[0].key_len = 4; /* but with different len */
-    table->entries[0].key     = "a";
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 99; /* force hash collision with c */
-    table->entries[1].key_len = 1;  /* with same len */
-    table->entries[1].key     = "b"; /* but different key */
-    /* table is full, fail */
-    entry = 0;
-    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( 0 == find_entry_return );
-    /* check entry is unchanged */
-    assert( 0 == entry );
-
-    assert( lh_resize(table, 3) );
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 98; /* force hash collision with b */
-    table->entries[0].key_len = 4;  /* but with different len */
-    table->entries[0].key     = "a";
-
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 98; /* force hash collision with b */
-    table->entries[1].key_len = 1;  /* with same len */
-    table->entries[1].key     = "a"; /* but different key */
-
-    /* finally a place to insert */
-    table->entries[2].state   = LH_ENTRY_DUMMY;
-    entry = 0;
-    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( 1 == find_entry_return );
-    /* check entry was changed */
-    assert( 0 != entry );
-    assert( entry == &(table->entries[2]) );
-
-    /* we want to force wrap around
-     * and then encounter a dummy
-     */
-    assert( lh_resize(table, 4) );
-    table->entries[0].state   = LH_ENTRY_DUMMY;
-
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 99; /* hash collide with c */
-    table->entries[1].key_len = 2; /* different key len*/
-    table->entries[1].key     = "z"; /* different key */
-
-    table->entries[2].state   = LH_ENTRY_OCCUPIED;
-    table->entries[2].hash    = 99; /* hash collide with c */
-    table->entries[2].key_len = 2; /* different key len*/
-    table->entries[2].key     = "z"; /* different key */
-
-    table->entries[3].state   = LH_ENTRY_OCCUPIED;
-    table->entries[3].hash    = 99; /* hash collide with c */
-    table->entries[3].key_len = 2; /* different key len*/
-    table->entries[3].key     = "z"; /* different key */
-
-    entry = 0;
-    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( 1 == find_entry_return );
-    /* check entry was changed */
-    assert( 0 != entry );
-    assert( entry == &(table->entries[0]) );
-
-    puts("manipulation to provoke lh_resize");
-    assert( lh_resize(table, 5) );
-    /* provoke 3 hash collision on a resize
-     * where the preferred pos is the final element
-     *
-     * we also secretly fill up the elements without
-     * increment n_elems
-     *
-     * we then resize so that there is not enough room
-     * this is only possible with manipulation as insert
-     * will increase n_elems and resize will refuse to
-     * shrink below n_elems
-     */
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 101;
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 101;
-    table->entries[2].state   = LH_ENTRY_OCCUPIED;
-    table->entries[2].hash    = 101;
-    table->entries[3].state   = LH_ENTRY_OCCUPIED;
-    table->entries[3].hash    = 101;
-    table->entries[4].state   = LH_ENTRY_OCCUPIED;
-    table->entries[4].hash    = 101;
-    /* we won't be able to fit everything in! */
-    assert( 0 ==  lh_resize(table, 4) );
-
-    puts("manipulating to torture lh_delete");
-
-    /*
-     * examples of some useful keys in our length
-     * 4 table
-     *
-     * lh_pos(lh_hash(X, 1), 4) == Y
-     *
-     * for key  X  we get hash  Y
-     *
-     *  for key 'a' we get hash '1'
-     *  for key 'b' we get hash '2'
-     *  for key 'c' we get hash '3'
-     *  for key 'd' we get hash '0'
-     *  for key 'e' we get hash '1'
-     *  for key 'f' we get hash '2'
-     *  for key 'g' we get hash '3'
-     */
-
-    table->entries[4].state   = LH_ENTRY_EMPTY;
-    assert( lh_resize(table, 4) );
-
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 99; /* hash collide with c */
-    table->entries[0].key_len = 2; /* different key len*/
-
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 99;
-    table->entries[1].key_len = 1;
-    table->entries[1].key     = "z"; /* different key */
-
-    table->entries[2].state   = LH_ENTRY_DUMMY;
-
-    table->entries[3].state   = LH_ENTRY_OCCUPIED;
-    table->entries[3].hash    = 99;
-
-    assert( 0 == lh_delete(table, "c") );
-
-    table->entries[0].state   = LH_ENTRY_OCCUPIED;
-    table->entries[0].hash    = 1; /* hash differ */
-
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 100; /* hash collide with d */
-    table->entries[1].key_len = 2; /* different key len*/
-
-    table->entries[2].state   = LH_ENTRY_OCCUPIED;
-    table->entries[2].hash    = 100;
-    table->entries[2].key_len = 1;
-    table->entries[2].key     = "z"; /* different key */
-
-    table->entries[3].state   = LH_ENTRY_DUMMY;
-
-    assert( 0 == lh_delete(table, "d") );
-
-    /* we want to force wrap around
-     * and then encounter an empty
-     */
-    table->entries[0].state   = LH_ENTRY_EMPTY;
-
-    table->entries[1].state   = LH_ENTRY_OCCUPIED;
-    table->entries[1].hash    = 99; /* hash collide with c */
-    table->entries[1].key_len = 2; /* different key len*/
-    table->entries[1].key     = "z"; /* different key */
-
-    table->entries[2].state   = LH_ENTRY_OCCUPIED;
-    table->entries[2].hash    = 99; /* hash collide with c */
-    table->entries[2].key_len = 2; /* different key len*/
-    table->entries[2].key     = "z"; /* different key */
-
-    table->entries[3].state   = LH_ENTRY_OCCUPIED;
-    table->entries[3].hash    = 99; /* hash collide with c */
-    table->entries[3].key_len = 2; /* different key len*/
-    table->entries[3].key     = "z"; /* different key */
-
-    assert( 0 == lh_delete(table, "c") );
-
-
-    puts("success!");
-}
+//void artificial(void){
+//    struct lh_table *table = 0;
+//    int data = 1;
+//    struct lh_entry *entry = 0;
+//    unsigned int find_entry_return;
+//
+//    puts("\ntesting artificial linear search failure");
+//
+//    puts("building table");
+//    table = lh_new();
+//    assert(table);
+//
+//    /* shrink artificially */
+//    assert( lh_resize(table, 2) );
+//
+//    puts("manipulating and testing of find and insert");
+//    /* fill only positions */
+//    table->entries[0].state = LH_ENTRY_OCCUPIED;
+//    table->entries[1].state = LH_ENTRY_OCCUPIED;
+//    /* an insert should fail as this table is full */
+//    assert( 0 == lh_insert(table, "c", &data) );
+//
+//    puts("further manipulation for lh_find_entry");
+//    table->entries[0].state = LH_ENTRY_DUMMY;
+//    table->entries[1].state = LH_ENTRY_DUMMY;
+//    entry = 0;
+//    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+//    assert( 1 == find_entry_return );
+//    /* check that entry was changed */
+//    assert( 0 != entry );
+//
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 98; /* collide with b */
+//    table->entries[0].key_len = 2;  /* with different key_len */
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 98; /* collide with b */
+//    table->entries[1].key_len = 2;  /* with different key_len */
+//    /* table full, no possible space, error */
+//    entry = 0;
+//    find_entry_return = lh_find_entry(table, 0, "b", 0, &entry);
+//    assert( 0 == find_entry_return );
+//    /* check entry is unchanged */
+//    assert( 0 == entry );
+//
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 99; /* force hash collision with c */
+//    table->entries[0].key_len = 4; /* but with different len */
+//    table->entries[0].key     = "a";
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 99; /* force hash collision with c */
+//    table->entries[1].key_len = 1;  /* with same len */
+//    table->entries[1].key     = "b"; /* but different key */
+//    /* table is full, fail */
+//    entry = 0;
+//    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+//    assert( 0 == find_entry_return );
+//    /* check entry is unchanged */
+//    assert( 0 == entry );
+//
+//    assert( lh_resize(table, 3) );
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 98; /* force hash collision with b */
+//    table->entries[0].key_len = 4;  /* but with different len */
+//    table->entries[0].key     = "a";
+//
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 98; /* force hash collision with b */
+//    table->entries[1].key_len = 1;  /* with same len */
+//    table->entries[1].key     = "a"; /* but different key */
+//
+//    /* finally a place to insert */
+//    table->entries[2].state   = LH_ENTRY_DUMMY;
+//    entry = 0;
+//    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+//    assert( 1 == find_entry_return );
+//    /* check entry was changed */
+//    assert( 0 != entry );
+//    assert( entry == &(table->entries[2]) );
+//
+//    /* we want to force wrap around
+//     * and then encounter a dummy
+//     */
+//    assert( lh_resize(table, 4) );
+//    table->entries[0].state   = LH_ENTRY_DUMMY;
+//
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 99; /* hash collide with c */
+//    table->entries[1].key_len = 2; /* different key len*/
+//    table->entries[1].key     = "z"; /* different key */
+//
+//    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[2].hash    = 99; /* hash collide with c */
+//    table->entries[2].key_len = 2; /* different key len*/
+//    table->entries[2].key     = "z"; /* different key */
+//
+//    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[3].hash    = 99; /* hash collide with c */
+//    table->entries[3].key_len = 2; /* different key len*/
+//    table->entries[3].key     = "z"; /* different key */
+//
+//    entry = 0;
+//    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+//    assert( 1 == find_entry_return );
+//    /* check entry was changed */
+//    assert( 0 != entry );
+//    assert( entry == &(table->entries[0]) );
+//
+//    puts("manipulation to provoke lh_resize");
+//    assert( lh_resize(table, 5) );
+//    /* provoke 3 hash collision on a resize
+//     * where the preferred pos is the final element
+//     *
+//     * we also secretly fill up the elements without
+//     * increment n_elems
+//     *
+//     * we then resize so that there is not enough room
+//     * this is only possible with manipulation as insert
+//     * will increase n_elems and resize will refuse to
+//     * shrink below n_elems
+//     */
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 101;
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 101;
+//    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[2].hash    = 101;
+//    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[3].hash    = 101;
+//    table->entries[4].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[4].hash    = 101;
+//    /* we won't be able to fit everything in! */
+//    assert( 0 ==  lh_resize(table, 4) );
+//
+//    puts("manipulating to torture lh_delete");
+//
+//    /*
+//     * examples of some useful keys in our length
+//     * 4 table
+//     *
+//     * lh_pos(lh_hash(X, 1), 4) == Y
+//     *
+//     * for key  X  we get hash  Y
+//     *
+//     *  for key 'a' we get hash '1'
+//     *  for key 'b' we get hash '2'
+//     *  for key 'c' we get hash '3'
+//     *  for key 'd' we get hash '0'
+//     *  for key 'e' we get hash '1'
+//     *  for key 'f' we get hash '2'
+//     *  for key 'g' we get hash '3'
+//     */
+//
+//    table->entries[4].state   = LH_ENTRY_EMPTY;
+//    assert( lh_resize(table, 4) );
+//
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 99; /* hash collide with c */
+//    table->entries[0].key_len = 2; /* different key len*/
+//
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 99;
+//    table->entries[1].key_len = 1;
+//    table->entries[1].key     = "z"; /* different key */
+//
+//    table->entries[2].state   = LH_ENTRY_DUMMY;
+//
+//    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[3].hash    = 99;
+//
+//    assert( 0 == lh_delete(table, "c") );
+//
+//    table->entries[0].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[0].hash    = 1; /* hash differ */
+//
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 100; /* hash collide with d */
+//    table->entries[1].key_len = 2; /* different key len*/
+//
+//    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[2].hash    = 100;
+//    table->entries[2].key_len = 1;
+//    table->entries[2].key     = "z"; /* different key */
+//
+//    table->entries[3].state   = LH_ENTRY_DUMMY;
+//
+//    assert( 0 == lh_delete(table, "d") );
+//
+//    /* we want to force wrap around
+//     * and then encounter an empty
+//     */
+//    table->entries[0].state   = LH_ENTRY_EMPTY;
+//
+//    table->entries[1].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[1].hash    = 99; /* hash collide with c */
+//    table->entries[1].key_len = 2; /* different key len*/
+//    table->entries[1].key     = "z"; /* different key */
+//
+//    table->entries[2].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[2].hash    = 99; /* hash collide with c */
+//    table->entries[2].key_len = 2; /* different key len*/
+//    table->entries[2].key     = "z"; /* different key */
+//
+//    table->entries[3].state   = LH_ENTRY_OCCUPIED;
+//    table->entries[3].hash    = 99; /* hash collide with c */
+//    table->entries[3].key_len = 2; /* different key len*/
+//    table->entries[3].key     = "z"; /* different key */
+//
+//    assert( 0 == lh_delete(table, "c") );
+//
+//
+//    puts("success!");
+//}
 
 /* function used by our iterate test below */
 unsigned int iterate_sum(void *state, const char *key, void **data){
@@ -1786,7 +1786,7 @@ int main(void){
 
     threshold();
 
-    artificial();
+//    artificial();
 
     iteration();
 

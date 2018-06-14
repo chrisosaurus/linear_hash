@@ -44,6 +44,8 @@ struct lh_entry {
     size_t key_len;
     /* data pointer */
     void *data;
+    /* distance from desired slot */
+    unsigned int probe_len;
 };
 
 struct lh_table {

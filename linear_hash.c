@@ -173,14 +173,11 @@ unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, 
     }
 
     entry->state = LH_ENTRY_OCCUPIED;
-    entry->hash = hash;
-    entry->key = new_key;
-    entry->key_len = key_len;
-    entry->data = data;
-
-/* TODO FIXME dummy to use probe_len */
-    entry->hash = probe_len;
-    entry->hash = hash;
+    entry->hash      = hash;
+    entry->key       = new_key;
+    entry->key_len   = key_len;
+    entry->data      = data;
+    entry->probe_len = probe_len;
 
     /* return success */
     return 1;
@@ -224,9 +221,10 @@ unsigned int lh_entry_init(struct lh_entry *entry,
     }
 
     /* setup our simple fields */
-    entry->hash    = hash;
-    entry->key_len = key_len;
-    entry->data    = data;
+    entry->hash      = hash;
+    entry->key_len   = key_len;
+    entry->data      = data;
+    entry->probe_len = 0;
     entry->state   = LH_ENTRY_OCCUPIED;
 
     /* we duplicate the string */
@@ -1120,6 +1118,9 @@ LH_DELETE_FOUND:
         cur->key_len = 0;
         cur->hash = 0;
         cur->state = LH_ENTRY_DUMMY;
+        cur->probe_len = 0;
+
+        /* TODO FIXME need to shift down */
 
         /* decrement number of elements */
         --table->n_elems;

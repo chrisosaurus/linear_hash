@@ -1781,7 +1781,7 @@ void test_shift_down_one(void){
     puts("initialising table state before test");
     /* start state
      * -----------
-     * indicies:            0 1 2 3
+     * indicies:            0 1 2 3 ...
      * keys:                a b c d
      * desired slot:        0 0 1 0
      * distance to desired: 0 1 1 3
@@ -1828,7 +1828,7 @@ void test_shift_down_one(void){
     puts("verifying expected end state");
     /* expected end state
      * -----------
-     * indicies:            0 1 2 3
+     * indicies:            0 1 2 3 ...
      * keys:                b c d
      * desired slot:        0 1 0
      * distance to desired: 0 0 2
@@ -1874,7 +1874,7 @@ void test_shift_down_two(void){
     puts("initialising table state before test");
     /* start state
      * -----------
-     * indicies:            0 1 2 3
+     * indicies:            0 1 2 3 ...
      * keys:                a b c d
      * desired slot:        0 0 2 0
      * distance to desired: 0 1 0 3
@@ -1921,7 +1921,7 @@ void test_shift_down_two(void){
     puts("verifying expected end state");
     /* expected end state
      * -----------
-     * indicies:            0 1 2 3
+     * indicies:            0 1 2 3 ...
      * keys:                b d c
      * desired slot:        0 0 2
      * distance to desired: 0 1 0
@@ -1967,7 +1967,7 @@ void test_shift_down_three(void){
     puts("initialising table state before test");
     /* start state
      * -----------
-     * indicies:            0 1 2 3 4
+     * indicies:            0 1 2 3 4 ...
      * keys:                a b c d e
      * desired slot:        0 0 2 2 0
      * distance to desired: 0 1 0 1 4
@@ -2020,7 +2020,7 @@ void test_shift_down_three(void){
     puts("verifying expected end state");
     /* expected end state
      * -----------
-     * indicies:            0 1 2 3
+     * indicies:            0 1 2 3 ...
      * keys:                b e c d
      * desired slot:        0 0 2 2
      * distance to desired: 0 1 0 1
@@ -2169,6 +2169,75 @@ void test_shift_down_wraparound(void){
     puts("success!");
 }
 
+void test_find_full_table(void){
+    struct lh_table *table = 0;
+    struct lh_entry *entry = 0;
+    unsigned int probe_len = 0;
+
+    puts("\ntesting lh_find error handling when table is full");
+
+    puts("creating table");
+    table = lh_new();
+    assert(table);
+    assert( 0 == lh_nelems(table) );
+    /* current default size is 32 */
+    assert( 32 == table->size );
+
+    puts("initialising table state before test");
+    /* start state
+     * -----------
+     * indicies:            0 1 2 3 4
+     * keys:                d e a b c
+     * desired slot:        4 2 2 2 4
+     * distance to desired: 1 4 0 1 0
+     */
+    table->n_elems = 5;
+    table->size = 5;
+
+    table->entries[0].occupied  = true;
+    table->entries[0].hash      = 104; /* value doesn't matter */
+    table->entries[0].key       = lh_strdupn("d", 1);
+    table->entries[0].key_len   = 1;
+    table->entries[0].probe_len = 1;
+
+    table->entries[1].occupied  = true;
+    table->entries[1].hash      = 105; /* value doesn't matter */
+    table->entries[1].key       = lh_strdupn("e", 1);
+    table->entries[1].key_len   = 1;
+    table->entries[1].probe_len = 4;
+
+    table->entries[2].occupied  = true;
+    table->entries[2].hash      = 101; /* value doesn't matter */
+    table->entries[2].key       = lh_strdupn("a", 1);
+    table->entries[2].key_len   = 1;
+    table->entries[2].probe_len = 0;
+
+    table->entries[3].occupied  = true;
+    table->entries[3].hash      = 102; /* value doesn't matter */
+    table->entries[3].key       = lh_strdupn("b", 1);
+    table->entries[3].key_len   = 1;
+    table->entries[3].probe_len = 1;
+
+    table->entries[4].occupied  = true;
+    table->entries[4].hash      = 103; /* value doesn't matter */
+    table->entries[4].key       = lh_strdupn("c", 1);
+    table->entries[4].key_len   = 1;
+    table->entries[4].probe_len = 0;
+
+    entry = 0;
+    probe_len = 0;
+    /* this lh_find_entry should fail as the table is full
+     * and "q" doesn't already exist
+     */
+    assert( 0 == lh_find_entry(table, 999, "q", 1, &entry, &probe_len) );
+    /* check that entry and probe_len are both unchanged */
+    assert( 0 == entry );
+    assert( 0 == probe_len );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
 int main(void){
     test_new_insert_get_destroy();
 
@@ -2207,6 +2276,8 @@ int main(void){
     test_shift_down_three();
 
     test_shift_down_wraparound();
+
+    test_find_full_table();
 
     puts("\noverall testing success!");
 

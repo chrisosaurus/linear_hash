@@ -10,7 +10,7 @@
 #include "linear_hash.h"
 #include "linear_hash_internal.h"
 
-void new_insert_get_destroy(void){
+void test_new_insert_get_destroy(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -85,7 +85,7 @@ void new_insert_get_destroy(void){
     puts("success!");
 }
 
-void update(void){
+void test_update(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -185,7 +185,7 @@ void update(void){
     puts("success!");
 }
 
-void set(void){
+void test_set(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -298,7 +298,7 @@ void set(void){
 }
 
 
-void delete(void){
+void test_delete(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -390,7 +390,7 @@ void delete(void){
     puts("success!");
 }
 
-void collision(void){
+void test_collision(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -634,7 +634,7 @@ void collision(void){
     puts("success!");
 }
 
-void resize(void){
+void test_resize(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -712,7 +712,7 @@ void resize(void){
     puts("success!");
 }
 
-void destroy(void){
+void test_destroy(void){
     /* specifically test lh_destroy with free_data = 1 */
 
     /* our simple hash table */
@@ -783,7 +783,7 @@ void destroy(void){
     puts("success!");
 }
 
-void error_handling(void){
+void test_error_handling(void){
     /* our simple hash table */
     struct lh_table *table = 0;
     struct lh_table *not_table = 0;
@@ -919,7 +919,7 @@ void error_handling(void){
     puts("success!");
 }
 
-void internal(void){
+void test_internal(void){
     struct lh_table table;
     struct lh_entry she;
     struct lh_entry static_she;
@@ -992,7 +992,7 @@ void internal(void){
     puts("success!");
 }
 
-void load_resize(void){
+void test_load_resize(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -1113,7 +1113,7 @@ void load_resize(void){
 
 }
 
-void rollover(void){
+void test_rollover(void){
     struct lh_table *table = 0;
 
     /* with length 4 and key 'c' we can hit the 3rd spot */
@@ -1178,7 +1178,7 @@ void rollover(void){
     assert( lh_destroy(table, 1, 0) );
 }
 
-void threshold(void){
+void test_threshold(void){
     struct lh_table *table = 0;
     int data = 1;
 
@@ -1222,7 +1222,7 @@ void threshold(void){
     puts("success!");
 }
 
-//void artificial(void){
+//void test_artificial(void){
 //    struct lh_table *table = 0;
 //    int data = 1;
 //    struct lh_entry *entry = 0;
@@ -1499,7 +1499,7 @@ unsigned int iterate_first(void *state, const char *key, void **data){
     return 0;
 }
 
-void iteration(void){
+void test_iteration(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -2170,33 +2170,33 @@ void test_shift_down_wraparound(void){
 }
 
 int main(void){
-    new_insert_get_destroy();
+    test_new_insert_get_destroy();
 
-    update();
+    test_update();
 
-    set();
+    test_set();
 
-    delete();
+    test_delete();
 
-    collision();
+    test_collision();
 
-    resize();
+    test_resize();
 
-    destroy();
+    test_destroy();
 
-    error_handling();
+    test_error_handling();
 
-    internal();
+    test_internal();
 
-    load_resize();
+    test_load_resize();
 
-    rollover();
+    test_rollover();
 
-    threshold();
+    test_threshold();
 
-//    artificial();
+//    test_artificial();
 
-    iteration();
+    test_iteration();
 
     test_resize_insert();
 

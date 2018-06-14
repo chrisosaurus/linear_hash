@@ -1060,7 +1060,7 @@ void * lh_delete(struct lh_table *table, const char *key){
     } while (i != pos);
 
     /* failed to find element */
-    puts("lh_delete: failed to find key, both loops terminated");
+    puts("lh_delete: failed to find key, searched entire table");
     return 0;
 
 LH_DELETE_FOUND:

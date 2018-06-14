@@ -178,10 +178,12 @@ void * lh_update(struct lh_table *table, const char *key, void *data);
  *
  * this will either insert or update depending on if key already exists
  *
+ * if this is an update then `old_data` will contain the old data
+ *
  * returns 1 on success
  * returns 0 on failure
  */
-unsigned int lh_set(struct lh_table *table, const char *key, void *data);
+unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **old_data);
 
 /* get `data` stored under `key`
  *

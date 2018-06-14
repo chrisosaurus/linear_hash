@@ -26,16 +26,12 @@
 #ifndef LINEAR_HASH_H
 #define LINEAR_HASH_H
 
+#include <stdbool.h> /* bool */
 #include <stddef.h> /* size_t */
 
-enum lh_entry_state {
-    LH_ENTRY_EMPTY,
-    LH_ENTRY_OCCUPIED,
-    LH_ENTRY_DUMMY /* was occupied but now delete */
-};
-
 struct lh_entry {
-    enum lh_entry_state state;
+    /* false means empty, true means occupied */
+    bool occupied;
     /* hash value for this entry, output of lh_hash(key) */
     unsigned long int hash;
     /* string copied using lh_strdup (defined in linear_hash.c) */

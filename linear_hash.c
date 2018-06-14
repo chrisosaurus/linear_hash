@@ -172,7 +172,7 @@ unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, 
         return 0;
     }
 
-    entry->state = LH_ENTRY_OCCUPIED;
+    entry->occupied  = true;
     entry->hash      = hash;
     entry->key       = new_key;
     entry->key_len   = key_len;
@@ -225,7 +225,7 @@ unsigned int lh_entry_init(struct lh_entry *entry,
     entry->key_len   = key_len;
     entry->data      = data;
     entry->probe_len = 0;
-    entry->state   = LH_ENTRY_OCCUPIED;
+    entry->occupied  = true;
 
     /* we duplicate the string */
     entry->key = lh_strdupn(key, key_len);
@@ -285,7 +285,6 @@ unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash,
     unsigned int probe_len = 0;
 
     struct lh_entry *entry_emp = 0;
-    struct lh_entry *entry_dum = 0;
 
     if( ! table ){
         puts("lh_find_entry: table undef");
@@ -319,22 +318,13 @@ unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash,
     pos = lh_pos(hash, table->size);
 
     /* search pos..size */
-    for( i=pos; i < table->size; ++i ){
+    for( i=pos; i < table->size; ++i, ++probe_len ){
         cur = &(table->entries[i]);
 
         /* if this is an empty then we stop */
-        if( cur->state == LH_ENTRY_EMPTY ){
+        if( cur->occupied == false ){
             entry_emp = cur;
             goto LH_FIND_STOP;
-        }
-
-        /* if this is a dummy then we skip but continue */
-        if( cur->state == LH_ENTRY_DUMMY ){
-            /* if this is our first dummy, keep it */
-            if( ! entry_dum ){
-                entry_dum = cur;
-            }
-            continue;
         }
 
         if( ! lh_entry_eq(cur, hash, key_len, key) ){
@@ -347,22 +337,13 @@ unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash,
     }
 
     /* search 0..pos */
-    for( i=0; i < pos; ++i ){
+    for( i=0; i < pos; ++i, ++probe_len ){
         cur = &(table->entries[i]);
 
         /* if this is an empty then we stop */
-        if( cur->state == LH_ENTRY_EMPTY ){
+        if( cur->occupied == false ){
             entry_emp = cur;
             goto LH_FIND_STOP;
-        }
-
-        /* if this is a dummy then we skip but continue */
-        if( cur->state == LH_ENTRY_DUMMY ){
-            /* if this is our first dummy, keep it */
-            if( ! entry_dum ){
-                entry_dum = cur;
-            }
-            continue;
         }
 
         if( ! lh_entry_eq(cur, hash, key_len, key) ){
@@ -394,6 +375,7 @@ LH_FIND_STOP:
      * this should never happen
      */
 
+    puts("lh_find_entry: looped table and found nothing, out of space");
     return 0;
 }
 
@@ -685,7 +667,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
         cur = &(table->entries[i]);
 
         /* if we are not occupied then skip */
-        if( cur->state != LH_ENTRY_OCCUPIED ){
+        if( ! cur->occupied ){
             continue;
         }
 
@@ -694,7 +676,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
 
         for( j = new_pos; j < new_size; ++ j){
             /* skip if not empty */
-            if( new_entries[j].state != LH_ENTRY_EMPTY ){
+            if( new_entries[j].occupied != false ){
                 continue;
             }
             goto LH_RESIZE_FOUND;
@@ -702,7 +684,7 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
 
         for( j = 0; j < new_pos; ++ j){
             /* skip if not empty */
-            if( new_entries[j].state != LH_ENTRY_EMPTY ){
+            if( new_entries[j].occupied != false ){
                 continue;
             }
             goto LH_RESIZE_FOUND;
@@ -716,11 +698,11 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
         return 0;
 
 LH_RESIZE_FOUND:
-        new_entries[j].hash    = cur->hash;
-        new_entries[j].key     = cur->key;
-        new_entries[j].key_len = cur->key_len;
-        new_entries[j].data    = cur->data;
-        new_entries[j].state   = cur->state;
+        new_entries[j].hash     = cur->hash;
+        new_entries[j].key      = cur->key;
+        new_entries[j].key_len  = cur->key_len;
+        new_entries[j].data     = cur->data;
+        new_entries[j].occupied = cur->occupied;
     }
 
     /* free old data */
@@ -774,7 +756,7 @@ unsigned int lh_exists(const struct lh_table *table, const char *key){
         return 0;
     }
 
-    if( entry->state == LH_ENTRY_OCCUPIED ){
+    if( entry->occupied  ){
         return 1;
     }
 
@@ -845,7 +827,7 @@ unsigned int lh_insert(struct lh_table *table, const char *key, void *data){
         return 0;
     }
 
-    if( entry->state == LH_ENTRY_OCCUPIED ){
+    if( entry->occupied ){
         puts("lh_insert: key already exists in table");
         return 0;
     }
@@ -904,7 +886,7 @@ void * lh_update(struct lh_table *table, const char *key, void *data){
         return 0;
     }
 
-    if( entry->state != LH_ENTRY_OCCUPIED ){
+    if( !entry->occupied  ){
         puts("lh_update: no such entry existed");
         return 0;
     }
@@ -975,7 +957,7 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **
         return 0;
     }
 
-    if( entry->state != LH_ENTRY_OCCUPIED ){
+    if( !entry->occupied ){
         /* no such entry found
          * pass off to insert
          */
@@ -1031,7 +1013,7 @@ void * lh_get(const struct lh_table *table, const char *key){
         return 0;
     }
 
-    if( entry->state != LH_ENTRY_OCCUPIED ){
+    if( !entry->occupied ){
         /* no such entry found */
         return 0;
     }
@@ -1087,7 +1069,7 @@ void * lh_delete(struct lh_table *table, const char *key){
         cur = &(table->entries[i]);
 
         /* if this is an empty then we stop */
-        if( cur->state == LH_ENTRY_EMPTY ){
+        if( cur->occupied == false ){
             /* failed to find element */
 #ifdef DEBUG
             puts("lh_delete: failed to find key, encountered empty");
@@ -1117,10 +1099,13 @@ LH_DELETE_FOUND:
         cur->key = 0;
         cur->key_len = 0;
         cur->hash = 0;
-        cur->state = LH_ENTRY_DUMMY;
         cur->probe_len = 0;
 
-        /* TODO FIXME need to shift down */
+        /* perform down shifting to repair table */
+        if( !lh_shift_down(table, i) ){
+            puts("lh_delete: call to lh_shift_down failed");
+            return 0;
+        }
 
         /* decrement number of elements */
         --table->n_elems;
@@ -1172,7 +1157,7 @@ unsigned int lh_iterate(struct lh_table *table, void *state, unsigned int (*each
     for( i=0; i<len; ++i ){
         entry = &(table->entries[i]);
 
-        if( entry->state == LH_ENTRY_OCCUPIED ){
+        if( entry->occupied ){
             ret = each(state, entry->key, &(entry->data));
 
             /* if ret == 0 then user wants us to stop */
@@ -1181,6 +1166,78 @@ unsigned int lh_iterate(struct lh_table *table, void *state, unsigned int (*each
             }
         }
     }
+
+    return 1;
+}
+
+/* performing down-shifting of all entries after deleted_slot
+ * this is cleaning up after a delete
+ *
+ * returns 1 on success
+ * returns 0 on error
+ */
+unsigned int lh_shift_down(struct lh_table *table, unsigned int deleted_slot) {
+    unsigned int i = 0;
+    /* current entry being considered */
+    struct lh_entry *entry = 0;
+    /* last empty slot */
+    struct lh_entry *empty = 0;
+    /* probe length since `empty` was set */
+    unsigned int probe_len = 0;
+
+    if( !table ){
+        puts("lh_shift_down: table was null");
+        return 0;
+    }
+
+    if( deleted_slot > table->size ){
+        puts("lh_shift_down: provided 'deleted_slot' was larger than table size");
+        return 0;
+    }
+
+    empty = &(table->entries[deleted_slot]);
+    i = deleted_slot + 1;
+    probe_len = 1;
+
+    do {
+        entry = &(table->entries[i]);
+
+        if( !entry->occupied ){
+            /* found an empty, we are done */
+            return 1;
+        }
+
+        /* if the entry's probe_len is >= probe_len then we can safely
+         * moved the entry into empty
+         */
+        if( entry->probe_len >= probe_len ){
+            /* adjust entry->probe_len */
+            entry->probe_len -= probe_len;
+
+            /* move entry to empty */
+            empty->hash      = entry->hash;
+            empty->key       = entry->key;
+            empty->key_len   = entry->key_len;
+            empty->data      = entry->data;
+            empty->occupied  = entry->occupied;
+            empty->probe_len = entry->probe_len;
+
+            /* clear out entry */
+            entry->hash      = 0;
+            entry->key       = 0;
+            entry->key_len   = 0;
+            entry->data      = 0;
+            entry->occupied  = false;
+            entry->probe_len = 0;
+
+            /* reset probe_len and empty */
+            probe_len = 0;
+            empty = entry;
+        }
+
+        ++probe_len;
+        i = (i+1) % table->size;
+    } while( i != deleted_slot );
 
     return 1;
 }

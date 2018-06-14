@@ -4,6 +4,7 @@
 #include <assert.h> /* assert */
 #include <stdio.h> /* puts */
 #include <stdlib.h> /* calloc */
+#include <stdbool.h> /* true/false */
 #include <string.h> /* strlen */
 
 #include "linear_hash.h"
@@ -1140,7 +1141,7 @@ void rollover(void){
      * the intention here is to force the second for loop
      * for insert and delete to activate
      */
-    table->entries[3].state = LH_ENTRY_OCCUPIED;
+    table->entries[3].occupied = true;
 
     /* force insert to roll over */
     assert( lh_insert(table, key, &data) );
@@ -1148,8 +1149,12 @@ void rollover(void){
     /* force delete to roll over */
     assert( lh_delete(table, key) );
 
-    /* make sure to remark as empty */
-    table->entries[3].state = LH_ENTRY_EMPTY;
+    /* destroy table */
+    assert( lh_destroy(table, 1, 0) );
+
+    /* make a new one */
+    table = lh_new();
+    assert(table);
 
     /* force resize to 2 */
     assert( lh_resize(table, 2) );
@@ -1761,6 +1766,409 @@ void test_resize_set(void){
     puts("success!");
 }
 
+void test_shift_down_one(void){
+    struct lh_table *table = 0;
+
+    puts("\ntesting down shifting functionality shift_down_one");
+
+    puts("creating table");
+    table = lh_new();
+    assert(table);
+    assert( 0 == lh_nelems(table) );
+    /* current default size is 32 */
+    assert( 32 == table->size );
+
+    puts("initialising table state before test");
+    /* start state
+     * -----------
+     * indicies:            0 1 2 3
+     * keys:                a b c d
+     * desired slot:        0 0 1 0
+     * distance to desired: 0 1 1 3
+     */
+    table->n_elems = 4;
+
+    table->entries[0].occupied  = true;
+    table->entries[0].hash      = 101; /* value doesn't matter */
+    table->entries[0].key       = lh_strdupn("a", 1);
+    table->entries[0].key_len   = 1;
+    table->entries[0].probe_len = 0;
+
+    table->entries[1].occupied  = true;
+    table->entries[1].hash      = 102; /* value doesn't matter */
+    table->entries[1].key       = lh_strdupn("b", 1);
+    table->entries[1].key_len   = 1;
+    table->entries[1].probe_len = 1;
+
+    table->entries[2].occupied  = true;
+    table->entries[2].hash      = 103; /* value doesn't matter */
+    table->entries[2].key       = lh_strdupn("c", 1);
+    table->entries[2].key_len   = 1;
+    table->entries[2].probe_len = 1;
+
+    table->entries[3].occupied  = true;
+    table->entries[3].hash      = 104; /* value doesn't matter */
+    table->entries[3].key       = lh_strdupn("d", 1);
+    table->entries[3].key_len   = 1;
+    table->entries[3].probe_len = 3;
+
+    puts("performing delete and down shift");
+    /* simulate `delete a` without calling delete
+     * so that we can isolate the testing of lh_shift_down
+     */
+    table->n_elems = 3;
+    table->entries[0].occupied = false;
+    free(table->entries[0].key);
+    table->entries[0].hash = 0;
+    table->entries[0].key_len = 0;
+
+    /* perform down shift */
+    assert( lh_shift_down(table, 0) );
+
+    puts("verifying expected end state");
+    /* expected end state
+     * -----------
+     * indicies:            0 1 2 3
+     * keys:                b c d
+     * desired slot:        0 1 0
+     * distance to desired: 0 0 2
+     */
+    assert( table->n_elems = 3 );
+
+    assert( table->entries[0].occupied == true );
+    assert( table->entries[0].hash     == 102 );
+    assert( 0 == strcmp("b", table->entries[0].key) );
+    assert( table->entries[0].key_len  == 1 );
+    assert( table->entries[0].probe_len  == 0 );
+
+    assert( table->entries[1].occupied == true );
+    assert( table->entries[1].hash     == 103 );
+    assert( 0 == strcmp("c", table->entries[1].key) );
+    assert( table->entries[1].key_len  == 1 );
+    assert( table->entries[1].probe_len  == 0 );
+
+    assert( table->entries[2].occupied == true );
+    assert( table->entries[2].hash     == 104 );
+    assert( 0 == strcmp("d", table->entries[2].key) );
+    assert( table->entries[2].key_len  == 1 );
+    assert( table->entries[2].probe_len  == 2 );
+
+    assert( table->entries[3].occupied == false );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
+void test_shift_down_two(void){
+    struct lh_table *table = 0;
+
+    puts("\ntesting down shifting functionality shift_down_two");
+
+    puts("creating table");
+    table = lh_new();
+    assert(table);
+    assert( 0 == lh_nelems(table) );
+    /* current default size is 32 */
+    assert( 32 == table->size );
+
+    puts("initialising table state before test");
+    /* start state
+     * -----------
+     * indicies:            0 1 2 3
+     * keys:                a b c d
+     * desired slot:        0 0 2 0
+     * distance to desired: 0 1 0 3
+     */
+    table->n_elems = 4;
+
+    table->entries[0].occupied  = true;
+    table->entries[0].hash      = 101; /* value doesn't matter */
+    table->entries[0].key       = lh_strdupn("a", 1);
+    table->entries[0].key_len   = 1;
+    table->entries[0].probe_len = 0;
+
+    table->entries[1].occupied  = true;
+    table->entries[1].hash      = 102; /* value doesn't matter */
+    table->entries[1].key       = lh_strdupn("b", 1);
+    table->entries[1].key_len   = 1;
+    table->entries[1].probe_len = 1;
+
+    table->entries[2].occupied  = true;
+    table->entries[2].hash      = 103; /* value doesn't matter */
+    table->entries[2].key       = lh_strdupn("c", 1);
+    table->entries[2].key_len   = 1;
+    table->entries[2].probe_len = 0;
+
+    table->entries[3].occupied  = true;
+    table->entries[3].hash      = 104; /* value doesn't matter */
+    table->entries[3].key       = lh_strdupn("d", 1);
+    table->entries[3].key_len   = 1;
+    table->entries[3].probe_len = 3;
+
+    puts("performing delete and down shift");
+    /* simulate `delete a` without calling delete
+     * so that we can isolate the testing of lh_shift_down
+     */
+    table->n_elems = 3;
+    table->entries[0].occupied = false;
+    free(table->entries[0].key);
+    table->entries[0].hash = 0;
+    table->entries[0].key_len = 0;
+
+    /* perform down shift */
+    assert( lh_shift_down(table, 0) );
+
+    puts("verifying expected end state");
+    /* expected end state
+     * -----------
+     * indicies:            0 1 2 3
+     * keys:                b d c
+     * desired slot:        0 0 2
+     * distance to desired: 0 1 0
+     */
+    assert( table->n_elems = 3 );
+
+    assert( table->entries[0].occupied == true );
+    assert( table->entries[0].hash     == 102 );
+    assert( 0 == strcmp("b", table->entries[0].key) );
+    assert( table->entries[0].key_len  == 1 );
+    assert( table->entries[0].probe_len  == 0 );
+
+    assert( table->entries[1].occupied == true );
+    assert( table->entries[1].hash     == 104 );
+    assert( 0 == strcmp("d", table->entries[1].key) );
+    assert( table->entries[1].key_len  == 1 );
+    assert( table->entries[1].probe_len  == 1 );
+
+    assert( table->entries[2].occupied == true );
+    assert( table->entries[2].hash     == 103 );
+    assert( 0 == strcmp("e", table->entries[2].key) );
+    assert( table->entries[2].key_len  == 1 );
+    assert( table->entries[2].probe_len  == 0 );
+
+    assert( table->entries[3].occupied == false );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
+void test_shift_down_three(void){
+    struct lh_table *table = 0;
+
+    puts("\ntesting down shifting functionality shift_down_three");
+
+    puts("creating table");
+    table = lh_new();
+    assert(table);
+    assert( 0 == lh_nelems(table) );
+    /* current default size is 32 */
+    assert( 32 == table->size );
+
+    puts("initialising table state before test");
+    /* start state
+     * -----------
+     * indicies:            0 1 2 3 4
+     * keys:                a b c d e
+     * desired slot:        0 0 2 2 0
+     * distance to desired: 0 1 0 1 4
+     */
+    table->n_elems = 5;
+
+    table->entries[0].occupied  = true;
+    table->entries[0].hash      = 101; /* value doesn't matter */
+    table->entries[0].key       = lh_strdupn("a", 1);
+    table->entries[0].key_len   = 1;
+    table->entries[0].probe_len = 0;
+
+    table->entries[1].occupied  = true;
+    table->entries[1].hash      = 102; /* value doesn't matter */
+    table->entries[1].key       = lh_strdupn("b", 1);
+    table->entries[1].key_len   = 1;
+    table->entries[1].probe_len = 1;
+
+    table->entries[2].occupied  = true;
+    table->entries[2].hash      = 103; /* value doesn't matter */
+    table->entries[2].key       = lh_strdupn("c", 1);
+    table->entries[2].key_len   = 1;
+    table->entries[2].probe_len = 0;
+
+    table->entries[3].occupied  = true;
+    table->entries[3].hash      = 104; /* value doesn't matter */
+    table->entries[3].key       = lh_strdupn("d", 1);
+    table->entries[3].key_len   = 1;
+    table->entries[3].probe_len = 1;
+
+    table->entries[4].occupied  = true;
+    table->entries[4].hash      = 105; /* value doesn't matter */
+    table->entries[4].key       = lh_strdupn("e", 1);
+    table->entries[4].key_len   = 1;
+    table->entries[4].probe_len = 4;
+
+    puts("performing delete and down shift");
+    /* simulate `delete a` without calling delete
+     * so that we can isolate the testing of lh_shift_down
+     */
+    table->n_elems = 4;
+    table->entries[0].occupied = false;
+    free(table->entries[0].key);
+    table->entries[0].hash = 0;
+    table->entries[0].key_len = 0;
+
+    /* perform down shift */
+    assert( lh_shift_down(table, 0) );
+
+    puts("verifying expected end state");
+    /* expected end state
+     * -----------
+     * indicies:            0 1 2 3
+     * keys:                b e c d
+     * desired slot:        0 0 2 2
+     * distance to desired: 0 1 0 1
+     */
+    assert( table->n_elems = 4 );
+
+    assert( table->entries[0].occupied == true );
+    assert( table->entries[0].hash     == 102 );
+    assert( 0 == strcmp("b", table->entries[0].key) );
+    assert( table->entries[0].key_len  == 1 );
+    assert( table->entries[0].probe_len  == 0 );
+
+    assert( table->entries[1].occupied == true );
+    assert( table->entries[1].hash     == 105 );
+    assert( 0 == strcmp("e", table->entries[1].key) );
+    assert( table->entries[1].key_len  == 1 );
+    assert( table->entries[1].probe_len  == 1 );
+
+    assert( table->entries[2].occupied == true );
+    assert( table->entries[2].hash     == 103 );
+    assert( 0 == strcmp("c", table->entries[2].key) );
+    assert( table->entries[2].key_len  == 1 );
+    assert( table->entries[2].probe_len  == 0 );
+
+    assert( table->entries[3].occupied == true );
+    assert( table->entries[3].hash     == 104 );
+    assert( 0 == strcmp("d", table->entries[3].key) );
+    assert( table->entries[3].key_len  == 1 );
+    assert( table->entries[3].probe_len  == 1 );
+
+    assert( table->entries[4].occupied == false );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
+void test_shift_down_wraparound(void){
+    struct lh_table *table = 0;
+
+    puts("\ntesting down shifting functionality shift_down_wraparound");
+
+    puts("creating table");
+    table = lh_new();
+    assert(table);
+    assert( 0 == lh_nelems(table) );
+    /* current default size is 32 */
+    assert( 32 == table->size );
+
+    puts("initialising table state before test");
+    /* start state
+     * -----------
+     * indicies:            0 1 2 3 4
+     * keys:                d e a b c
+     * desired slot:        4 2 2 2 4
+     * distance to desired: 1 4 0 1 0
+     */
+    table->n_elems = 5;
+    table->size = 5;
+
+    table->entries[0].occupied  = true;
+    table->entries[0].hash      = 104; /* value doesn't matter */
+    table->entries[0].key       = lh_strdupn("d", 1);
+    table->entries[0].key_len   = 1;
+    table->entries[0].probe_len = 1;
+
+    table->entries[1].occupied  = true;
+    table->entries[1].hash      = 105; /* value doesn't matter */
+    table->entries[1].key       = lh_strdupn("e", 1);
+    table->entries[1].key_len   = 1;
+    table->entries[1].probe_len = 4;
+
+    table->entries[2].occupied  = true;
+    table->entries[2].hash      = 101; /* value doesn't matter */
+    table->entries[2].key       = lh_strdupn("a", 1);
+    table->entries[2].key_len   = 1;
+    table->entries[2].probe_len = 0;
+
+    table->entries[3].occupied  = true;
+    table->entries[3].hash      = 102; /* value doesn't matter */
+    table->entries[3].key       = lh_strdupn("b", 1);
+    table->entries[3].key_len   = 1;
+    table->entries[3].probe_len = 1;
+
+    table->entries[4].occupied  = true;
+    table->entries[4].hash      = 103; /* value doesn't matter */
+    table->entries[4].key       = lh_strdupn("c", 1);
+    table->entries[4].key_len   = 1;
+    table->entries[4].probe_len = 0;
+
+    puts("performing delete and down shift");
+    /* simulate `delete a` without calling delete
+     * so that we can isolate the testing of lh_shift_down
+     * -----------
+     * indicies:            0 1 2 3 4
+     * keys:                d e   b c
+     * desired slot:        4 2   2 4
+     * distance to desired: 1 4   1 0
+     */
+    table->n_elems = 4;
+    table->entries[2].occupied = false;
+    free(table->entries[2].key);
+    table->entries[2].hash = 0;
+    table->entries[2].key_len = 0;
+    table->entries[2].probe_len = 0;
+
+    /* perform down shift */
+    assert( lh_shift_down(table, 2) );
+
+    puts("verifying expected end state");
+    /* expected end state
+     * -----------
+     * indicies:            0 1 2 3 4
+     * keys:                d   b e c
+     * desired slot:        4   2 2 4
+     * distance to desired: 1   0 1 0
+     */
+    assert( table->n_elems = 4 );
+
+    assert( table->entries[0].occupied == true );
+    assert( table->entries[0].hash     == 104 );
+    assert( 0 == strcmp("d", table->entries[0].key) );
+    assert( table->entries[0].key_len  == 1 );
+    assert( table->entries[0].probe_len  == 1 );
+
+    assert( table->entries[1].occupied == false );
+
+    assert( table->entries[2].occupied == true );
+    assert( table->entries[2].hash     == 102 );
+    assert( 0 == strcmp("b", table->entries[2].key) );
+    assert( table->entries[2].key_len  == 1 );
+    assert( table->entries[2].probe_len  == 0 );
+
+    assert( table->entries[3].occupied == true );
+    assert( table->entries[3].hash     == 105 );
+    assert( 0 == strcmp("e", table->entries[3].key) );
+    assert( table->entries[3].key_len  == 1 );
+    assert( table->entries[3].probe_len  == 1 );
+
+    assert( table->entries[4].occupied == true );
+    assert( table->entries[4].hash     == 103 );
+    assert( 0 == strcmp("c", table->entries[4].key) );
+    assert( table->entries[4].key_len  == 1 );
+    assert( table->entries[4].probe_len  == 0 );
+
+    assert( lh_destroy(table, 1, 0) );
+    puts("success!");
+}
+
 int main(void){
     new_insert_get_destroy();
 
@@ -1793,6 +2201,12 @@ int main(void){
     test_resize_insert();
 
     test_resize_set();
+
+    test_shift_down_one();
+
+    test_shift_down_three();
+
+    test_shift_down_wraparound();
 
     puts("\noverall testing success!");
 

@@ -60,7 +60,7 @@ example: ${OBJ}
 
 moby_dick.txt:
 	@echo "Downloading moby dick text ~1.2 MiB"
-	curl http://www.gutenberg.org/files/2701/2701.txt -o moby_dick.txt
+	curl http://www.gutenberg.org/files/2701/old/moby10b.txt -o moby_dick.txt
 
 profile_keys.c: moby_dick.txt
 	@echo -e "Generating profile_keys.sh\n"

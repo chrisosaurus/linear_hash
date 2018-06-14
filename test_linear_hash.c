@@ -1682,7 +1682,7 @@ char * test_keys[] = {
 	"damp,",
 };
 
-void test_resize_insert(void){
+void test_resize_insert_delete(void){
     /* our simple hash table */
     struct lh_table *table = 0;
 
@@ -1692,7 +1692,7 @@ void test_resize_insert(void){
 
     unsigned int data = 14;
 
-    puts("\ntesting resize on insert functionality");
+    puts("\ntesting resize on insert functionality followed by deletes");
 
     puts("creating table");
     table = lh_new();
@@ -1718,6 +1718,12 @@ void test_resize_insert(void){
       } else {
         assert( 128 == table->size );
       }
+    }
+
+    puts("testing deletes");
+    for( i = 0; i < test_keys_len; ++i ){
+        key = test_keys[i];
+        assert( &data == lh_delete(table, key) );
     }
 
     assert( lh_destroy(table, 1, 0) );
@@ -2334,7 +2340,7 @@ int main(void){
 
     test_iteration();
 
-    test_resize_insert();
+    test_resize_insert_delete();
 
     test_resize_set();
 

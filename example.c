@@ -13,6 +13,7 @@ int main(void){
 
     /* return pointer */
     int *data;
+    int *old_data;
 
     /* insert new data */
     lh_insert(t, "hello", &data_1);
@@ -25,10 +26,10 @@ int main(void){
     lh_delete(t, "world");
 
     /* update existing data */
-    lh_update(t, "hello", &data_2);
+    old_data = lh_update(t, "hello", &data_2);
 
     /* either insert or update as need be*/
-    lh_set(t, "boop", &data_2);
+    lh_set(t, "boop", &data_2, &old_data);
 
     /* check a key exists */
     if( lh_exists(t, "hello") ){

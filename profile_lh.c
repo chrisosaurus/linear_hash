@@ -42,6 +42,8 @@ int main(void){
     /* return pointer */
     int *data;
 
+    void *old_data;
+
     unsigned int num_inserts_million = 10;
     unsigned int num_inserts = num_inserts_million * 1000000;
     /* for size can use any of the 4 keys as they are all the same length */
@@ -69,7 +71,7 @@ int main(void){
       assert(t = lh_new());
 
       puts("\nProfiling Set - repeating keys");
-      PROFILE("set", set_keys, lh_set(t, key, &data_1), 1);
+      PROFILE("set", set_keys, lh_set(t, key, &data_1, &old_data), 1);
       PROFILE("get", get_keys, lh_get(t, key), &data_1);
       PROFILE("exists", exists_keys, lh_exists(t, key), 1);
 
@@ -88,7 +90,7 @@ int main(void){
        * like insert, do not use duplicate keys
        */
       num_inserts = num_keys;
-      PROFILE("set", set_keys, lh_set(t, key, &data_1), 1);
+      PROFILE("set", set_keys, lh_set(t, key, &data_1, &old_data), 1);
       PROFILE("get", get_keys, lh_get(t, key), &data_1);
       PROFILE("exists", exists_keys, lh_exists(t, key), 1);
       PROFILE("delete", delete_keys, lh_delete(t, key), &data_1);

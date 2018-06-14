@@ -206,6 +206,7 @@ void set(void){
 
     /* temporary data pointer used for testing get */
     int *data = 0;
+    void *old_data = 0;
 
     puts("\ntesting set functionality");
 
@@ -217,27 +218,36 @@ void set(void){
 
 
     puts("inserting some data with set");
-    assert( lh_set(table, key_1, &data_1) );
+    old_data = 0;
+    assert( lh_set(table, key_1, &data_1, &old_data) );
     assert( 1 == lh_nelems(table) );
     assert( 0 == lh_get(table, key_2) );
     assert( 0 == lh_get(table, key_3) );
+    /* old_data should not change as this was an insert */
+    assert( 0 == old_data );
 
     data = lh_get(table, key_1);
     assert(data);
     assert( data_1 == *data );
 
 
-    assert( lh_set(table, key_2, &data_2) );
+    old_data = 0;
+    assert( lh_set(table, key_2, &data_2, &old_data) );
     assert( 2 == lh_nelems(table) );
     assert( 0 == lh_get(table, key_3) );
+    /* old_data should not change as this was an insert */
+    assert( 0 == old_data );
 
     data = lh_get(table, key_2);
     assert(data);
     assert( data_2 == *data );
 
 
-    assert( lh_set(table, key_3, &data_3) );
+    old_data = 0;
+    assert( lh_set(table, key_3, &data_3, &old_data) );
     assert( 3 == lh_nelems(table) );
+    /* old_data should not change as this was an insert */
+    assert( 0 == old_data );
 
     data = lh_get(table, key_3);
     assert(data);
@@ -247,11 +257,13 @@ void set(void){
     puts("testing update with set");
 
     puts("two set");
-    assert( lh_set(table, key_2, &new_data_2) );
+    old_data = 0;
+    assert( lh_set(table, key_2, &new_data_2, &old_data) );
     data = lh_get(table, key_2);
     assert(data);
     assert( *data == new_data_2 );
     assert( 3 == lh_nelems(table) );
+    assert( old_data == &data_2 );
 
     data = lh_get(table, key_2);
     assert(data);
@@ -868,8 +880,9 @@ void error_handling(void){
 
     /* lh_set */
     puts("testing lh_set");
-    assert( 0 == lh_set(0, key_1, &data_1) );
-    assert( 0 == lh_set(table, 0, &data_1) );
+    assert( 0 == lh_set(0, key_1, &data_1, 0) );
+    assert( 0 == lh_set(table, 0, &data_1, 0) );
+    assert( 0 == lh_set(table, key_1, &data_1, 0) );
 
     /* lh_get */
     puts("testing lh_get");
@@ -1711,6 +1724,8 @@ void test_resize_set(void){
 
     unsigned int data = 14;
 
+    void *old_data = 0;
+
     puts("\ntesting resize on set functionality");
 
     puts("creating table");
@@ -1723,7 +1738,10 @@ void test_resize_set(void){
     puts("testing sets and resize point");
     for( i = 0; i < test_keys_len; ++i ){
       key = test_keys[i];
-      assert( lh_set(table, key, &data) );
+      assert( lh_set(table, key, &data, &old_data) );
+
+      /* these are inserts so old_data should remain unchanged */
+      assert( 0 == old_data );
 
       /* threshold is currently 60%
        *  32 * 0.6 = 19.2

@@ -918,10 +918,12 @@ void * lh_update(struct lh_table *table, const char *key, void *data){
  *
  * this will either insert or update depending on if key already exists
  *
+ * if this is an update then `old_data` will contain the old data
+ *
  * returns 1 on success
  * returns 0 on failure
  */
-unsigned int lh_set(struct lh_table *table, const char *key, void *data){
+unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **old_data){
     size_t key_len = 0;
     unsigned long int hash = 0;
     struct lh_entry *entry = 0;
@@ -934,6 +936,11 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data){
 
     if( ! key ){
         puts("lh_set: key undef");
+        return 0;
+    }
+
+    if( ! old_data ){
+        puts("lh_set: old_data undef");
         return 0;
     }
 
@@ -976,6 +983,7 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data){
     /* entry found
      * update data
      */
+    *old_data = entry->data;
     entry->data = data;
     return 1;
 }

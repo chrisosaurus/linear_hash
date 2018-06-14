@@ -911,6 +911,11 @@ void test_error_handling(void){
     assert( 0 == lh_tune_threshold(table, 0) );
     assert( 0 == lh_tune_threshold(table, 101) );
 
+    /* lh_shift_down */
+    puts("testing lh_tune_threshold");
+    assert( 0 == lh_shift_down(0, 0) );
+    assert( 0 == lh_shift_down(table, 100000) );
+
     /* lh_destroy */
     assert( 0 == lh_destroy(0, 1, 0) );
 

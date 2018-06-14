@@ -13,27 +13,7 @@ unsigned int lh_entry_init(struct lh_entry *entry, unsigned long int hash, const
 
 unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data);
 
-enum lh_find_entry_state {
-    /* error:
-     *  arguments were bad
-     *  call to internal function failed
-     *  failed to find dummy OR empty
-     */
-    LH_FIND_ENTRY_STATE_ERROR  = 0,
-
-    /* key did exist
-     * returned entry that is occupied
-     */
-    LH_FIND_ENTRY_STATE_EXISTS = 1,
-
-    /* key didn't already exist
-     * returned entry that is either dummy or empty
-     * returned entry is place that key *should* go
-     */
-    LH_FIND_ENTRY_STATE_SLOT   = 2,
-};
-
-enum lh_find_entry_state lh_find_entry(const struct lh_table *table, unsigned long int hash, const char *key, size_t key_len, struct lh_entry **entry);
+unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash, const char *key, size_t key_len, struct lh_entry **entry);
 
 #endif
 

@@ -910,7 +910,7 @@ void internal(void){
     struct lh_entry she;
     struct lh_entry static_she;
     char * str = 0;
-    enum lh_find_entry_state find_entry_state;
+    unsigned int find_entry_return;
     struct lh_entry *entry = 0;
 
     puts("\ntesting internal functions");
@@ -942,21 +942,23 @@ void internal(void){
     /* lh_find_entry */
     puts("testing lh_find_entry error handling");
     /* null table */
-    find_entry_state = lh_find_entry(0, 0, "hello", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_ERROR == find_entry_state );
+    find_entry_return = lh_find_entry(0, 0, "hello", 0, &entry);
+    assert( 0 == find_entry_return );
     /* null key */
-    find_entry_state = lh_find_entry(&table, 0, 0, 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_ERROR == find_entry_state );
+    find_entry_return = lh_find_entry(&table, 0, 0, 0, &entry);
+    assert( 0 == find_entry_return );
     /* null entry */
-    find_entry_state = lh_find_entry(&table, 0, "hello", 0, 0);
-    assert( LH_FIND_ENTRY_STATE_ERROR == find_entry_state );
+    find_entry_return = lh_find_entry(&table, 0, "hello", 0, 0);
+    assert( 0 == find_entry_return );
 
     /* hash 0 and key_len 0 but valid find
      * need a valid table for this
      */
     assert( lh_init(&table, 10) );
-    find_entry_state = lh_find_entry(&table, 0, "hello", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_SLOT == find_entry_state );
+    entry = 0;
+    find_entry_return = lh_find_entry(&table, 0, "hello", 0, &entry);
+    assert( 1 == find_entry_return );
+    assert( 0 != entry );
 
     /* lh_entry_eq */
     puts("testing lh_entry_eq");
@@ -1206,7 +1208,7 @@ void artificial(void){
     struct lh_table *table = 0;
     int data = 1;
     struct lh_entry *entry = 0;
-    enum lh_find_entry_state find_entry_state;
+    unsigned int find_entry_return;
 
     puts("\ntesting artificial linear search failure");
 
@@ -1228,8 +1230,8 @@ void artificial(void){
     table->entries[0].state = LH_ENTRY_DUMMY;
     table->entries[1].state = LH_ENTRY_DUMMY;
     entry = 0;
-    find_entry_state = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_SLOT == find_entry_state );
+    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+    assert( 1 == find_entry_return );
     /* check that entry was changed */
     assert( 0 != entry );
 
@@ -1241,8 +1243,8 @@ void artificial(void){
     table->entries[1].key_len = 2;  /* with different key_len */
     /* table full, no possible space, error */
     entry = 0;
-    find_entry_state = lh_find_entry(table, 0, "b", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_ERROR == find_entry_state );
+    find_entry_return = lh_find_entry(table, 0, "b", 0, &entry);
+    assert( 0 == find_entry_return );
     /* check entry is unchanged */
     assert( 0 == entry );
 
@@ -1256,8 +1258,8 @@ void artificial(void){
     table->entries[1].key     = "b"; /* but different key */
     /* table is full, fail */
     entry = 0;
-    find_entry_state = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_ERROR == find_entry_state );
+    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+    assert( 0 == find_entry_return );
     /* check entry is unchanged */
     assert( 0 == entry );
 
@@ -1275,8 +1277,8 @@ void artificial(void){
     /* finally a place to insert */
     table->entries[2].state   = LH_ENTRY_DUMMY;
     entry = 0;
-    find_entry_state = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_SLOT == find_entry_state );
+    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+    assert( 1 == find_entry_return );
     /* check entry was changed */
     assert( 0 != entry );
     assert( entry == &(table->entries[2]) );
@@ -1303,8 +1305,8 @@ void artificial(void){
     table->entries[3].key     = "z"; /* different key */
 
     entry = 0;
-    find_entry_state = lh_find_entry(table, 0, "c", 0, &entry);
-    assert( LH_FIND_ENTRY_STATE_SLOT == find_entry_state );
+    find_entry_return = lh_find_entry(table, 0, "c", 0, &entry);
+    assert( 1 == find_entry_return );
     /* check entry was changed */
     assert( 0 != entry );
     assert( entry == &(table->entries[0]) );

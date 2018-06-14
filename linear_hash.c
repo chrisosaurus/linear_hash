@@ -546,24 +546,24 @@ size_t lh_pos(unsigned long int hash, size_t table_size){
  * returns 0 on failure
  */
 struct lh_table * lh_new(void){
-    struct lh_table *sht = 0;
+    struct lh_table *lht = 0;
 
     /* alloc */
-    sht = calloc(1, sizeof(struct lh_table));
-    if( ! sht ){
+    lht = calloc(1, sizeof(struct lh_table));
+    if( ! lht ){
         puts("lh_new: calloc failed");
         return 0;
     }
 
     /* init */
-    if( ! lh_init(sht, LH_DEFAULT_SIZE) ){
+    if( ! lh_init(lht, LH_DEFAULT_SIZE) ){
         puts("lh_new: call to lh_init failed");
         /* make sure to free our allocate lh_table */
-        free(sht);
+        free(lht);
         return 0;
     }
 
-    return sht;
+    return lht;
 }
 
 /* free an existing lh_table

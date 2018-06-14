@@ -98,7 +98,7 @@ Linear hash is not hardened and so is not recommended for use cases which would
 expose it to attackers.
 
 Each of the slots within the backing array is an instance of lh_entry which is
-marked by an enum to show if it is in use or not,
+marked by an bool to show if it is in use or not,
 it may be worth breaking this struct out into 2 or so arrays to improve cache
 lines.
 
@@ -110,10 +110,11 @@ A rough diagram of the internals of how a linear hash of size 8 would look:
     entries = *
               |
               v
-              [ empty | occupied | occupied | occupied | empty | occupied | empty | empty ]
-                        hash = X   hash = X   hash = Y           hash = Z
-                        key  = *   key  = *   key  = *           key  = *
-                        data = *   data = *   data = *           data = *
+              [ occupied = false | occupied  = true | occupied  = true | occupied  = true | occupied = false  | occupied  = true | empty | empty ]
+                                   hash      = X      hash      = X      hash      = Y                          hash      = Z
+                                   key       = *      key       = *      key       = *                          key       = *
+                                   data      = *      data      = *      data      = *                          data      = *
+                                   probe_len = 0      probe_len = 1      probe_len = 2                          probe_len = 0
 
 Here we can see an lh_table of size 8 containing 4 entries.
 
@@ -124,6 +125,7 @@ the linear probe starts stepping along the array and will insert the item into
 the first empty slot is finds at [2].
 
 If we assume that the hash `Y` also tried to use the same slot of [1]
+(that is that `X % 8 == Y % 8`)
 then it too would have triggered a linear probe which would have stepped along
 twice until it found the empty bucket at [3] which it was then inserted into.
 

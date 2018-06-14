@@ -1076,11 +1076,8 @@ void * lh_delete(struct lh_table *table, const char *key){
      */
     pos = lh_pos(hash, table->size);
 
-
-    /* starting at pos search for element
-     * searches pos .. size
-     */
-    for( i = pos; i < table->size ; ++i ){
+    i = pos;
+    do {
         cur = &(table->entries[i]);
 
         /* if this is an empty then we stop */
@@ -1092,44 +1089,12 @@ void * lh_delete(struct lh_table *table, const char *key){
             return 0;
         }
 
-        /* if this is a dummy then we skip but continue */
-        if( cur->state == LH_ENTRY_DUMMY ){
-            continue;
+        if( lh_entry_eq(cur, hash, key_len, key) ){
+          goto LH_DELETE_FOUND;
         }
 
-        if( ! lh_entry_eq(cur, hash, key_len, key) ){
-            continue;
-        }
-
-        goto LH_DELETE_FOUND;
-    }
-
-    /* if we are here then we hit the end,
-     * searches 0 .. pos
-     */
-    for( i = 0; i < pos; ++i ){
-        cur = &(table->entries[i]);
-
-        /* if this is an empty then we stop */
-        if( cur->state == LH_ENTRY_EMPTY ){
-            /* failed to find element */
-#ifdef DEBUG
-            puts("lh_delete: failed to find key, encountered empty");
-#endif
-            return 0;
-        }
-
-        /* if this is a dummy then we skip but continue */
-        if( cur->state == LH_ENTRY_DUMMY ){
-            continue;
-        }
-
-        if( ! lh_entry_eq(cur, hash, key_len, key) ){
-            continue;
-        }
-
-        goto LH_DELETE_FOUND;
-    }
+        i = (i+1) % table->size;
+    } while (i != pos);
 
     /* failed to find element */
     puts("lh_delete: failed to find key, both loops terminated");

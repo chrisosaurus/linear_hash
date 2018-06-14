@@ -751,11 +751,6 @@ unsigned int lh_exists(const struct lh_table *table, const char *key){
         return 0;
     }
 
-    if( !entry ){
-        puts("lh_exist: call to lh_find_entry claimed success but returned null entry");
-        return 0;
-    }
-
     if( entry->occupied  ){
         return 1;
     }
@@ -822,11 +817,6 @@ unsigned int lh_insert(struct lh_table *table, const char *key, void *data){
         return 0;
     }
 
-    if( !entry ){
-        puts("lh_insert: call to lh_find_entry claimed success but returned null entry");
-        return 0;
-    }
-
     if( entry->occupied ){
         puts("lh_insert: key already exists in table");
         return 0;
@@ -878,11 +868,6 @@ void * lh_update(struct lh_table *table, const char *key, void *data){
 
     if( !find_entry_return) {
         puts("lh_update: call to lh_find_entry failed");
-        return 0;
-    }
-
-    if( !entry ){
-        puts("lh_update: call to lh_find_entry claimed success but returned null entry");
         return 0;
     }
 
@@ -952,11 +937,6 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **
         return 0;
     }
 
-    if( !entry ){
-        puts("lh_set: call to lh_find_entry claimed success but returned null entry");
-        return 0;
-    }
-
     if( !entry->occupied ){
         /* no such entry found
          * pass off to insert
@@ -1005,11 +985,6 @@ void * lh_get(const struct lh_table *table, const char *key){
 
     if( !find_entry_return ){
         puts("lh_get: call to lh_find_entry failed");
-        return 0;
-    }
-
-    if( !entry ){
-        puts("lh_get: call to lh_find_entry claimed success but returned null entry");
         return 0;
     }
 

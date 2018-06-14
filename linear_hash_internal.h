@@ -11,6 +11,10 @@ unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, 
 
 unsigned int lh_entry_init(struct lh_entry *entry, unsigned long int hash, const char *key, size_t key_len, void *data );
 
+unsigned int lh_entry_move(struct lh_entry *from, struct lh_entry *to);
+
+unsigned int lh_entry_copy(struct lh_entry *from, struct lh_entry *to);
+
 unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data);
 
 unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash, const char *key, size_t key_len, struct lh_entry **entry, unsigned int *probe_len_out);

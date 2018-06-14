@@ -631,14 +631,18 @@ unsigned int lh_init(struct lh_table *table, size_t size){
 unsigned int lh_resize(struct lh_table *table, size_t new_size){
     /* our new data area */
     struct lh_entry *new_entries = 0;
+    /* our old entries */
+    struct lh_entry *old_entries = 0;
     /* the current entry we are copying across */
     struct lh_entry *cur = 0;
     /* our iterator through the old hash */
     size_t i = 0;
-    /* our iterator through the new data */
-    size_t j = 0;
-    /* our new position for each element */
-    size_t new_pos = 0;
+    /* old size */
+    unsigned int old_size = 0;
+    /* entry to insert into */
+    struct lh_entry *move_target = 0;
+    /* probe length */
+    unsigned int probe_len = 0;
 
     if( ! table ){
         puts("lh_resize: table was null");
@@ -655,6 +659,10 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
         return 0;
     }
 
+    /* backup data */
+    old_entries = table->entries;
+    old_size = table->size;
+
     /* allocate an array of lh_entry */
     new_entries = calloc(new_size, sizeof(struct lh_entry));
     if( ! new_entries ){
@@ -662,57 +670,47 @@ unsigned int lh_resize(struct lh_table *table, size_t new_size){
         return 0;
     }
 
+    /* set table->entries to be new */
+    table->entries = new_entries;
+    table->size = new_size;
+
     /* iterate through old data */
-    for( i=0; i < table->size; ++i ){
-        cur = &(table->entries[i]);
+    for( i=0; i < old_size; ++i ){
+        cur = &(old_entries[i]);
 
         /* if we are not occupied then skip */
         if( ! cur->occupied ){
             continue;
         }
 
-        /* our position within new entries */
-        new_pos = lh_pos(cur->hash, new_size);
-
-        for( j = new_pos; j < new_size; ++ j){
-            /* skip if not empty */
-            if( new_entries[j].occupied != false ){
-                continue;
-            }
-            goto LH_RESIZE_FOUND;
+        if( !lh_find_entry(table, cur->hash, cur->key, cur->key_len, &move_target, &probe_len) ){
+            puts("lh_resize: call to lh_find_entry failed");
+            goto LH_RESIZE_FAIL;
+            return 0;
         }
 
-        for( j = 0; j < new_pos; ++ j){
-            /* skip if not empty */
-            if( new_entries[j].occupied != false ){
-                continue;
-            }
-            goto LH_RESIZE_FOUND;
+        if( !lh_entry_copy(cur, move_target) ){
+            puts("lh_resize: call to lh_entry_copy failed");
+            goto LH_RESIZE_FAIL;
         }
 
-        puts("lh_resize: failed to find spot for new element!");
-        /* make sure to free our new_entries since we don't store them
-         * no need to free items in as they are still held in our old elems
-         */
-        free(new_entries);
-        return 0;
-
-LH_RESIZE_FOUND:
-        new_entries[j].hash     = cur->hash;
-        new_entries[j].key      = cur->key;
-        new_entries[j].key_len  = cur->key_len;
-        new_entries[j].data     = cur->data;
-        new_entries[j].occupied = cur->occupied;
+        move_target->probe_len = probe_len;
     }
 
     /* free old data */
-    free(table->entries);
+    free(old_entries);
 
-    /* swap */
-    table->size = new_size;
-    table->entries = new_entries;
-
+    /* signal success */
     return 1;
+
+LH_RESIZE_FAIL:
+    /* set things back to how they were... */
+    table->entries = old_entries;
+    table->size = old_size;
+    /* clean up newly allocated data */
+    free(new_entries);
+    /* signal failure */
+    return 0;
 }
 
 /* check if the supplied key already exists in this hash
@@ -1076,14 +1074,14 @@ LH_DELETE_FOUND:
         cur->hash = 0;
         cur->probe_len = 0;
 
+        /* decrement number of elements */
+        --table->n_elems;
+
         /* perform down shifting to repair table */
         if( !lh_shift_down(table, i) ){
             puts("lh_delete: call to lh_shift_down failed");
             return 0;
         }
-
-        /* decrement number of elements */
-        --table->n_elems;
 
         /* return old data */
         return old_data;
@@ -1189,21 +1187,10 @@ unsigned int lh_shift_down(struct lh_table *table, unsigned int deleted_slot) {
             /* adjust entry->probe_len */
             entry->probe_len -= probe_len;
 
-            /* move entry to empty */
-            empty->hash      = entry->hash;
-            empty->key       = entry->key;
-            empty->key_len   = entry->key_len;
-            empty->data      = entry->data;
-            empty->occupied  = entry->occupied;
-            empty->probe_len = entry->probe_len;
-
-            /* clear out entry */
-            entry->hash      = 0;
-            entry->key       = 0;
-            entry->key_len   = 0;
-            entry->data      = 0;
-            entry->occupied  = false;
-            entry->probe_len = 0;
+            if( !lh_entry_move(entry, empty) ){
+                puts("lh_shift_down: call to lh_entry_move failed");
+                return 0;
+            }
 
             /* reset probe_len and empty */
             probe_len = 0;
@@ -1214,6 +1201,71 @@ unsigned int lh_shift_down(struct lh_table *table, unsigned int deleted_slot) {
         i = (i+1) % table->size;
     } while( i != deleted_slot );
 
+    return 1;
+}
+
+/* move data from `from` and into `to`
+ * wipes `to` when finished
+ *
+ * returns 1 on success
+ * returns 0 on failure
+ */
+unsigned int lh_entry_move(struct lh_entry *from, struct lh_entry *to){
+    if( !from ){
+        puts("lh_entry_move: from was null");
+        return 0;
+    }
+
+    if( !to ){
+        puts("lh_entry_move: to was null");
+        return 0;
+    }
+
+    /* copy over to to */
+    to->hash      = from->hash;
+    to->key       = from->key;
+    to->key_len   = from->key_len;
+    to->data      = from->data;
+    to->occupied  = from->occupied;
+    to->probe_len = from->probe_len;
+
+    /* clear out from */
+    from->hash      = 0;
+    from->key       = 0;
+    from->key_len   = 0;
+    from->data      = 0;
+    from->occupied  = false;
+    from->probe_len = 0;
+
+    /* victory */
+    return 1;
+}
+
+/* copy data from `from` and into `to`
+ *
+ * returns 1 on success
+ * returns 0 on failure
+ */
+unsigned int lh_entry_copy(struct lh_entry *from, struct lh_entry *to){
+    if( !from ){
+        puts("lh_entry_copy: from was null");
+        return 0;
+    }
+
+    if( !to ){
+        puts("lh_entry_copy: to was null");
+        return 0;
+    }
+
+    /* copy over to to */
+    to->hash      = from->hash;
+    to->key       = from->key;
+    to->key_len   = from->key_len;
+    to->data      = from->data;
+    to->occupied  = from->occupied;
+    to->probe_len = from->probe_len;
+
+    /* victory */
     return 1;
 }
 

@@ -955,13 +955,13 @@ void internal(void){
     /* lh_find_entry */
     puts("testing lh_find_entry error handling");
     /* null table */
-    find_entry_return = lh_find_entry(0, 0, "hello", 0, &entry);
+    find_entry_return = lh_find_entry(0, 0, "hello", 0, &entry, 0);
     assert( 0 == find_entry_return );
     /* null key */
-    find_entry_return = lh_find_entry(&table, 0, 0, 0, &entry);
+    find_entry_return = lh_find_entry(&table, 0, 0, 0, &entry, 0);
     assert( 0 == find_entry_return );
     /* null entry */
-    find_entry_return = lh_find_entry(&table, 0, "hello", 0, 0);
+    find_entry_return = lh_find_entry(&table, 0, "hello", 0, 0, 0);
     assert( 0 == find_entry_return );
 
     /* hash 0 and key_len 0 but valid find
@@ -969,7 +969,7 @@ void internal(void){
      */
     assert( lh_init(&table, 10) );
     entry = 0;
-    find_entry_return = lh_find_entry(&table, 0, "hello", 0, &entry);
+    find_entry_return = lh_find_entry(&table, 0, "hello", 0, &entry, 0);
     assert( 1 == find_entry_return );
     assert( 0 != entry );
 
@@ -981,9 +981,9 @@ void internal(void){
     /* lh_insert_internal */
     puts("testing lh_insert_internal");
     /* insert_internal(table, entry, hash, key, key_len, data) */
-    assert( 0 == lh_insert_internal(0, 0, 0, 0, 0, 0) );
-    assert( 0 == lh_insert_internal(&table, 0, 0, 0, 0, 0) );
-    assert( 0 == lh_insert_internal(&table, entry, 0, 0, 0, 0) );
+    assert( 0 == lh_insert_internal(0, 0, 0, 0, 0, 0, 0) );
+    assert( 0 == lh_insert_internal(&table, 0, 0, 0, 0, 0, 0) );
+    assert( 0 == lh_insert_internal(&table, entry, 0, 0, 0, 0, 0) );
 
     /* cleanup */
     assert( lh_destroy(&table, 0, 0) );

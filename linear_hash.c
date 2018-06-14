@@ -144,7 +144,7 @@ char * lh_strdupn(const char *str, size_t len){
  * returns 1 on success
  * returns 0 on failure
  */
-unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, unsigned long int hash, const char *key, size_t key_len, void *data){
+unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, unsigned long int hash, const char *key, size_t key_len, void *data, unsigned int probe_len){
     /* iterator through table */
     char *new_key = 0;
 
@@ -177,6 +177,10 @@ unsigned int lh_insert_internal(struct lh_table *table, struct lh_entry *entry, 
     entry->key = new_key;
     entry->key_len = key_len;
     entry->data = data;
+
+/* TODO FIXME dummy to use probe_len */
+    entry->hash = probe_len;
+    entry->hash = hash;
 
     /* return success */
     return 1;
@@ -264,11 +268,13 @@ unsigned int lh_entry_destroy(struct lh_entry *entry, unsigned int free_data){
 /* centralised searching logic
  * will find where a key is *if* it exists
  * otherwise will find where a key *should* be
-
+ *
+ * probe_len_out is optional
+ *
  * returns 1 on success
  * returns 0 on failure
  */
-unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash, const char *key, size_t key_len, struct lh_entry **entry){
+unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash, const char *key, size_t key_len, struct lh_entry **entry, unsigned int *probe_len_out){
     /* our cur entry */
     struct lh_entry *cur = 0;
 
@@ -277,8 +283,11 @@ unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash,
     /* iterator through entries */
     size_t i = 0;
 
-    struct lh_entry *entry_dum = 0;
+    /* number of steps taken from ideal */
+    unsigned int probe_len = 0;
+
     struct lh_entry *entry_emp = 0;
+    struct lh_entry *entry_dum = 0;
 
     if( ! table ){
         puts("lh_find_entry: table undef");
@@ -370,20 +379,16 @@ unsigned int lh_find_entry(const struct lh_table *table, unsigned long int hash,
 LH_FIND_STOP:
 
     /* we didn't find an exact entry
-     * this means the caller needs to know the item doens't exist
-     * and we will return the first non-null or:
-     *   entry_dum
-     *   entry_emp
-     * if both are null then we failed
+     * this means the caller needs to know the item doesn't exist
+     * and we will return `entry_emp` if it is non-null
+     * if it is null then we failed
      */
-
-    if( entry_dum ){
-        *entry = entry_dum;
-        return 1;
-    }
 
     if( entry_emp ){
         *entry = entry_emp;
+        if( probe_len_out ){
+            *probe_len_out = probe_len;
+        }
         return 1;
     }
 
@@ -759,7 +764,7 @@ unsigned int lh_exists(const struct lh_table *table, const char *key){
     hash = lh_hash(key, key_len);
 
     /* find entry */
-    lh_find_return = lh_find_entry(table, hash, key, key_len, &entry);
+    lh_find_return = lh_find_entry(table, hash, key, key_len, &entry, 0);
 
     if( !lh_find_return ){
         puts("lh_exist: call to lh_find_entry failed");
@@ -792,6 +797,8 @@ unsigned int lh_insert(struct lh_table *table, const char *key, void *data){
     unsigned int find_entry_return = 0;
 
     struct lh_entry *entry = 0;
+
+    unsigned int probe_len = 0;
 
     if( ! table ){
         puts("lh_insert: table undef");
@@ -828,7 +835,7 @@ unsigned int lh_insert(struct lh_table *table, const char *key, void *data){
     hash = lh_hash(key, key_len);
 
     /* find entry */
-    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry);
+    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry, &probe_len);
 
     if( !find_entry_return ){
         puts("lh_insert: call to lh_find_entry failed");
@@ -849,7 +856,7 @@ unsigned int lh_insert(struct lh_table *table, const char *key, void *data){
     printf("lh_insert: inserting insert key '%s', hash value '%zd', starting at pos '%zd', into '%zd'\n", key, hash, pos, i);
 #endif
 
-    if( ! lh_insert_internal(table, entry, hash, key, key_len, data) ){
+    if( ! lh_insert_internal(table, entry, hash, key, key_len, data, probe_len) ){
         puts("lh_insert: call to lh_insert_internal failed");
         return 0;
     }
@@ -887,7 +894,7 @@ void * lh_update(struct lh_table *table, const char *key, void *data){
     /* allow data to be null */
 
     /* find entry */
-    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry);
+    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry, 0);
 
     if( !find_entry_return) {
         puts("lh_update: call to lh_find_entry failed");
@@ -928,6 +935,7 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **
     unsigned long int hash = 0;
     struct lh_entry *entry = 0;
     unsigned int find_entry_return;
+    unsigned int probe_len = 0;
 
     if( ! table ){
         puts("lh_set: table undef");
@@ -957,7 +965,7 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **
     key_len = strlen(key);
     hash = lh_hash(key, key_len);
 
-    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry);
+    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry, &probe_len);
 
     if( !find_entry_return ){
         puts("lh_set: call to lh_find_entry failed");
@@ -973,7 +981,7 @@ unsigned int lh_set(struct lh_table *table, const char *key, void *data, void **
         /* no such entry found
          * pass off to insert
          */
-        if( ! lh_insert_internal(table, entry, hash, key, key_len, data) ){
+        if( ! lh_insert_internal(table, entry, hash, key, key_len, data, probe_len) ){
             puts("lh_set: call to lh_insert_internal failed");
             return 0;
         }
@@ -1013,7 +1021,7 @@ void * lh_get(const struct lh_table *table, const char *key){
     hash = lh_hash(key, key_len);
 
     /* find entry */
-    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry);
+    find_entry_return = lh_find_entry(table, hash, key, key_len, &entry, 0);
 
     if( !find_entry_return ){
         puts("lh_get: call to lh_find_entry failed");
